@@ -8,6 +8,7 @@ import {
   Injectable
 } from '@nestjs/common';
 import { FastifyReply, FastifyRequest } from 'fastify';
+import { Stats } from 'fs';
 
 export interface CacheControlGuardOptions {
   assetEntry: string;
@@ -26,7 +27,14 @@ export function CacheControlGuard({
       const response = http.getResponse<FastifyReply>();
 
       const filename = path.parse(request.url).base;
-      const stat = await fs.stat(path.join(assetEntry, filename));
+
+      let stat: Stats;
+      try {
+        stat = await fs.stat(path.join(assetEntry, filename));
+      } catch (e) {
+        return true;
+      }
+
       const etag = crypto
         .createHash('md5')
         .update(stat.birthtimeMs.toString())
