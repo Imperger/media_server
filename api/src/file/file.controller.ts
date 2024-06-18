@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import type { FastifyReply } from 'fastify';
 import * as rangeParser from 'range-parser';
 import * as mime from 'mime-types';
 import { PathHelper } from '@/lib/PathHelper';
@@ -12,19 +13,16 @@ import {
   Headers,
   Param,
   Res,
-  StreamableFile
+  StreamableFile,
+  UseGuards
 } from '@nestjs/common';
 import { FileAccessService } from './file-access.service';
 import { FileNotFoundException } from './exceptions';
+import { CacheControlGuard } from './guards/cache-control.guard';
 
 interface RangeOptions {
   start?: number;
   end?: number;
-}
-
-interface Response {
-  header(key: string, value: string): void;
-  status(statusCode: number): void;
 }
 
 @Controller('file')
@@ -37,7 +35,7 @@ export class FileController {
   async fileContent(
     @Param('*') filename: string,
     @Headers('Range') range: string,
-    @Res({ passthrough: true }) res: Response
+    @Res({ passthrough: true }) res: FastifyReply
   ): Promise<StreamableFile> {
     const fileRecord = await this.fileAccessService.findFile(filename);
 
@@ -45,9 +43,7 @@ export class FileController {
       throw new FileNotFoundException();
     }
 
-    const mimeType = mime.lookup(filename) as string;
-
-    res.header('Content-Type', mimeType);
+    this.setupContentType(filename, res);
 
     let streamOptions: RangeOptions | undefined;
     if (range) {
@@ -70,7 +66,16 @@ export class FileController {
   }
 
   @Get('preview/:filename')
-  async preview(@Param('filename') filename: string) {
+  @UseGuards(
+    CacheControlGuard({ maxAge: 300, assetEntry: PathHelper.previewEntry })
+  )
+  @Header('Connection', 'keep-alive')
+  async preview(
+    @Param('filename') filename: string,
+    @Res({ passthrough: true }) res: FastifyReply
+  ) {
+    this.setupContentType(filename, res);
+
     return new StreamableFile(
       await this.fileAccessService.getPreviewStream(
         filename,
@@ -98,5 +103,10 @@ export class FileController {
       throw new BadRequestException();
     }
     return parseResult[0];
+  }
+
+  private setupContentType(filename: string, response: FastifyReply): void {
+    const mimeType = mime.lookup(filename) || 'application/octet-stream';
+    response.header('Content-Type', mimeType);
   }
 }
