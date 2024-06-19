@@ -2,6 +2,7 @@ import {
   Card,
   CardMedia,
   IconButton,
+  Link,
   ListItemIcon,
   ListItemText,
   Menu,
@@ -13,10 +14,12 @@ import { MouseEvent, useMemo, useState } from 'react';
 import { Delete, Info, Menu as MenuIcon, PlayArrow } from '@mui/icons-material';
 import { formatDuration } from '../lib/format-duration';
 import FileInfoDialog from './FileInfoDialog';
-import { Link } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import { useApiService } from '../api-service/api-context';
 import { useSnackbar } from 'notistack';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
+import { useAppDispatch } from '../hooks';
+import { updateLastWatched } from './store/last-watched';
 
 export interface FileCardProps {
   filename: string;
@@ -33,6 +36,7 @@ function FileCard(props: FileCardProps) {
   const baseURL = import.meta.env.BASE_URL;
   const api = useApiService();
   const { enqueueSnackbar } = useSnackbar();
+  const dispatch = useAppDispatch();
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const isMenuOpen = Boolean(menuAnchor);
   const [fileInfoDialogOpened, setFileInfoDialogOpened] = useState(false);
@@ -80,13 +84,20 @@ function FileCard(props: FileCardProps) {
   };
 
   const name = useMemo(
-    () => props.filename.split('/').slice(-1),
+    () => props.filename.split('/').slice(-1)[0],
     [props.filename]
   );
 
+  const saveLastWacthed = () => dispatch(updateLastWatched(name));
+
   return (
     <>
-      <Link to={`${baseURL}play/${props.filename}`}>
+      <Link
+        data-index={name}
+        component={RouterLink}
+        to={`${baseURL}play/${props.filename}`}
+        onClick={saveLastWacthed}
+      >
         <Card className={styles.container} style={{ margin: '2px' }}>
           <CardMedia
             component="img"

@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useBlocker, useParams } from 'react-router-dom';
 import { useApiService } from '../api-service/api-context';
 import { Breadcrumbs, Stack, Typography, useMediaQuery } from '@mui/material';
 import {
@@ -11,23 +11,38 @@ import FolderCard from './FolderCard';
 import { useTitle } from '../layout/TitleContext';
 import { ArrayHelper } from '../lib/ArrayHelper';
 import styles from './folder-collection.module.css';
+import { useAppDispatch, useAppSelector } from '../hooks';
+import { updateLastWatched } from './store/last-watched';
 
 interface BreadcrumbItem {
   caption: string;
   path: string;
 }
 
+function nearestFolder(from: string, to: string): string {
+  if (from.startsWith(to)) {
+    const diff = from.slice(to.length + 1);
+    return diff.split('/')[0];
+  } else {
+    return '';
+  }
+}
+
 function FolderCollection() {
   const baseURL = import.meta.env.BASE_URL;
   const { id, '*': path } = useParams();
   const api = useApiService();
+  const dispatch = useAppDispatch();
   const { setTitle } = useTitle();
+  const fileListRef = useRef<HTMLDivElement | null>(null);
   const [content, setContent] = useState<FolderContentRecord[]>([]);
   const [metainfo, setMetainfo] = useState<FolderMetainfo>({
     collectionId: 'unknown',
     folder: 'unknown',
     syncedAt: 0
   });
+  const lastWatched = useAppSelector((state) => state.lastWatched.filename);
+
   const isPortrait = useMediaQuery('(orientation: portrait)');
 
   const sortedContent = useMemo(
@@ -41,6 +56,20 @@ function FolderCollection() {
     [content]
   );
 
+  const scrollToLastWatched = () => {
+    if (fileListRef.current === null) {
+      return;
+    }
+
+    const lastViewElement = fileListRef.current.querySelector(
+      `a[data-index="${lastWatched}"]`
+    );
+
+    if (lastViewElement !== null) {
+      lastViewElement.scrollIntoView(true);
+    }
+  };
+
   useEffect(() => setTitle('Folder collection'));
 
   useEffect(() => {
@@ -52,6 +81,25 @@ function FolderCollection() {
 
     fetchFolderContent();
   }, [id, path]);
+
+  useBlocker(({ currentLocation, nextLocation }) => {
+    const folderName = nearestFolder(
+      decodeURI(currentLocation.pathname),
+      decodeURI(nextLocation.pathname)
+    );
+
+    if (folderName !== '') {
+      dispatch(updateLastWatched(folderName));
+    } else {
+      fileListRef.current?.scrollTo(0, 0);
+    }
+
+    return false;
+  });
+
+  useEffect(() => {
+    scrollToLastWatched();
+  }, [content]);
 
   const breadcrumbs = useMemo<BreadcrumbItem[]>(() => {
     const collectionEntry = `${baseURL}folder-collection/${id}`;
@@ -69,8 +117,6 @@ function FolderCollection() {
 
     return [root, ...breadcrumbs];
   }, [metainfo, path]);
-
-  const pathPrefix = useMemo(() => `${path}${path!.length ? '/' : ''}`, [path]);
 
   const onDeleteFile = (filename: string) =>
     setContent(
@@ -103,6 +149,7 @@ function FolderCollection() {
         ))}
       </Breadcrumbs>
       <Stack
+        ref={fileListRef}
         sx={{ overflowY: 'auto', alignContent: 'flex-start' }}
         className={styles.content}
         direction={isPortrait ? 'column' : 'row'}
@@ -126,12 +173,11 @@ function FolderCollection() {
               );
             case 'folder':
               return (
-                <Link key={x.name} to={`${pathPrefix}${x.name}`}>
-                  <FolderCard
-                    name={x.name}
-                    preview={`${baseURL}api/folder/preview/${x.assetPrefix}.jpg`}
-                  />
-                </Link>
+                <FolderCard
+                  key={x.name}
+                  name={x.name}
+                  preview={`${baseURL}api/folder/preview/${x.assetPrefix}.jpg`}
+                />
               );
           }
         })}
