@@ -1,6 +1,14 @@
 import { useParams } from 'react-router-dom';
-import { Box, IconButton, Stack, Typography } from '@mui/material';
-import { Fullscreen, Pause, PlayArrow } from '@mui/icons-material';
+import { Box, IconButton, Slider, Stack, Typography } from '@mui/material';
+import {
+  Fullscreen,
+  Pause,
+  PlayArrow,
+  VolumeDown,
+  VolumeMute,
+  VolumeOff,
+  VolumeUp
+} from '@mui/icons-material';
 import {
   KeyboardEvent,
   MouseEvent,
@@ -20,6 +28,10 @@ import {
 } from '../lib/gestures-recognizer';
 import { reinterpret_cast } from '../lib/reinterpret-cast';
 import { formatDuration } from '../lib/format-duration';
+import {
+  DefaultComponentProps,
+  OverridableTypeMap
+} from '@mui/material/OverridableComponent';
 
 interface RewindStepProperty {
   step: number;
@@ -34,7 +46,24 @@ interface ControlsProps {
   playerRef: RefObject<HTMLVideoElement>;
   play: boolean;
   togglePlay: () => void;
+  onVolume: (volume: number) => void;
 }
+
+interface VolumeProps extends DefaultComponentProps<OverridableTypeMap> {
+  volume: number;
+}
+
+const VolumeIcon = memo(({ volume, ...props }: VolumeProps) => {
+  if (volume === 0) {
+    return <VolumeOff {...props} />;
+  } else if (volume < 0.5) {
+    return <VolumeMute {...props} />;
+  } else if (volume < 0.8) {
+    return <VolumeDown {...props} />;
+  }
+
+  return <VolumeUp {...props} />;
+});
 
 const Controls = memo(
   ({
@@ -44,9 +73,11 @@ const Controls = memo(
     containerRef,
     playerRef,
     play,
-    togglePlay
+    togglePlay,
+    onVolume
   }: ControlsProps) => {
     const seekContainerRef = useRef<HTMLElement>(null);
+    const [volume, setVolume] = useState(1);
 
     const seekWidth = useMemo(() => {
       if (seekContainerRef.current === null) {
@@ -66,6 +97,13 @@ const Controls = memo(
 
       playerRef.current.currentTime =
         (e.nativeEvent.offsetX / e.currentTarget.clientWidth) * duration;
+    };
+
+    const onVolumeWrapper = (_event: Event, newVolume: number | number[]) => {
+      const value = newVolume as number;
+      setVolume(value);
+
+      onVolume(value);
     };
 
     const toggleFullscreen = () => {
@@ -108,6 +146,20 @@ const Controls = memo(
             component="div"
           >{`${playTimeUI} / ${durationUI}`}</Typography>
           <Box flexGrow={1} />
+          <VolumeIcon
+            volume={volume}
+            sx={{ fontSize: '1.5em', color: '#ffffff', marginRight: '9px' }}
+          />
+          <Slider
+            sx={{ width: '100px', color: '#ffffff' }}
+            size="small"
+            aria-label="Volume"
+            step={0.1}
+            min={0}
+            max={1}
+            value={volume}
+            onChange={onVolumeWrapper}
+          />
           <IconButton
             sx={{ '&:focus': { outline: 'none' } }}
             onClick={toggleFullscreen}
@@ -168,6 +220,14 @@ function Player() {
     play ? player.pause() : player.play();
 
     setPlay(!play);
+  };
+
+  const onVolume = (volume: number) => {
+    if (playerRef.current !== null) {
+      playerRef.current.volume = volume;
+    }
+
+    showControls();
   };
 
   const rewindStepFromKbEvent = (direction: number, e: KeyboardEvent) =>
@@ -276,6 +336,7 @@ function Player() {
         playerRef={playerRef}
         play={play}
         togglePlay={togglePlay}
+        onVolume={onVolume}
       />
     </Box>
   );
