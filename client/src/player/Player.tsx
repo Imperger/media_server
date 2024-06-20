@@ -83,44 +83,37 @@ const Controls = memo(
       }
     };
 
-    if (shown) {
-      return (
-        <Box className={styles.controls}>
-          <Box ref={seekContainerRef} className={styles.seek} onClick={onSeek}>
-            <Box
-              sx={{ width: seekWidth }}
-              className={styles.seekProgress}
-            ></Box>
-          </Box>
-          <Stack direction={'row'} className={styles.buttons}>
-            <IconButton
-              sx={{ '&:focus': { outline: 'none' } }}
-              onClick={togglePlay}
-            >
-              {play ? (
-                <Pause sx={{ fontSize: '1.5em' }}></Pause>
-              ) : (
-                <PlayArrow sx={{ fontSize: '1.5em' }}></PlayArrow>
-              )}
-            </IconButton>
-            <Typography
-              className={styles.time}
-              color="text.primary"
-              component="div"
-            >{`${playTimeUI} / ${durationUI}`}</Typography>
-            <Box flexGrow={1} />
-            <IconButton
-              sx={{ '&:focus': { outline: 'none' } }}
-              onClick={toggleFullscreen}
-            >
-              <Fullscreen sx={{ fontSize: '1.5em' }}></Fullscreen>
-            </IconButton>
-          </Stack>
+    return (
+      <Box className={styles.controls} sx={{ opacity: +shown }}>
+        <Box ref={seekContainerRef} className={styles.seek} onClick={onSeek}>
+          <Box sx={{ width: seekWidth }} className={styles.seekProgress}></Box>
         </Box>
-      );
-    } else {
-      return null;
-    }
+        <Stack direction={'row'} className={styles.buttons}>
+          <IconButton
+            sx={{ '&:focus': { outline: 'none' } }}
+            onClick={togglePlay}
+          >
+            {play ? (
+              <Pause sx={{ fontSize: '1.5em' }}></Pause>
+            ) : (
+              <PlayArrow sx={{ fontSize: '1.5em' }}></PlayArrow>
+            )}
+          </IconButton>
+          <Typography
+            className={styles.time}
+            color="text.primary"
+            component="div"
+          >{`${playTimeUI} / ${durationUI}`}</Typography>
+          <Box flexGrow={1} />
+          <IconButton
+            sx={{ '&:focus': { outline: 'none' } }}
+            onClick={toggleFullscreen}
+          >
+            <Fullscreen sx={{ fontSize: '1.5em' }}></Fullscreen>
+          </IconButton>
+        </Stack>
+      </Box>
+    );
   }
 );
 
