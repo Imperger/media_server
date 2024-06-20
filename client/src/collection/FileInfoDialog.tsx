@@ -10,9 +10,9 @@ import {
 import dateFormat from 'dateformat';
 import prettyBytes from 'pretty-bytes';
 import { formatDuration } from '../lib/format-duration';
-import { Context } from '../lib/Context';
+import { RWState } from '../lib/rw-state';
 
-export interface FileInfoDialogProps extends Context<'open', boolean> {
+export interface FileInfoDialogProps extends RWState<'open', boolean> {
   filename: string;
   size: number;
   duration: number;

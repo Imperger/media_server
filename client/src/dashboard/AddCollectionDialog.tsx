@@ -12,16 +12,16 @@ import {
   TextField
 } from '@mui/material';
 import { FormEvent, useState } from 'react';
-import { Context } from '../lib/Context';
+import { RWState } from '../lib/rw-state';
 import { CreateCollectionParameters } from './type';
 import { CollectionType } from '../api-service/api-service';
 
-export interface AddCollectionDialogProps extends Context<'open', boolean> {
+export interface AddCollectionDialogProps extends RWState<'open', boolean> {
   onApply: (collection: CreateCollectionParameters) => void;
 }
 
-type ExtraOptionsProps = Context<'folder', string> &
-  Context<'collectionId', string> & { type: CollectionType };
+type ExtraOptionsProps = RWState<'folder', string> &
+  RWState<'collectionId', string> & { type: CollectionType };
 
 function ExtraOptions({
   type,

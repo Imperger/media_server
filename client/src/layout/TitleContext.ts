@@ -1,8 +1,8 @@
 import { createContext, useContext } from 'react';
 
-import { Context } from '../lib/Context';
+import { RWState } from '../lib/rw-state';
 
-export const TitleContext = createContext<Context<'title', string>>({
+export const TitleContext = createContext<RWState<'title', string>>({
   title: '',
   setTitle: () => 0
 });

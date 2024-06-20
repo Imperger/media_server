@@ -5,12 +5,12 @@ import {
   ListItemIcon,
   ListItemText
 } from '@mui/material';
-import { Context } from '../lib/Context';
+import { RWState } from '../lib/rw-state';
 import { Dashboard, Login, Settings } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import styles from './sidebar-menu.module.css';
 
-function SidebarMenu({ open, setOpen }: Context<'open', boolean>) {
+function SidebarMenu({ open, setOpen }: RWState<'open', boolean>) {
   const toggleDrawer = (newOpen: boolean) => () => setOpen(newOpen);
 
   return (
