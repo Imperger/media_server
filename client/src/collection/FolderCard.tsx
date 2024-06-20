@@ -14,7 +14,7 @@ export interface FolderCardProps {
 function FolderCard({ name, preview }: FolderCardProps) {
   const { '*': path } = useParams();
   const dispatch = useAppDispatch();
-  const saveLastWacthed = () => dispatch(resetLastWatched());
+  const saveLastWacthed = () => void dispatch(resetLastWatched());
   const pathPrefix = useMemo(() => `${path}${path!.length ? '/' : ''}`, [path]);
 
   return (
