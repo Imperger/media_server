@@ -86,7 +86,10 @@ const Controls = memo(
     return (
       <Box className={styles.controls} sx={{ opacity: +shown }}>
         <Box ref={seekContainerRef} className={styles.seek} onClick={onSeek}>
-          <Box sx={{ width: seekWidth }} className={styles.seekProgress}></Box>
+          <Box
+            sx={{ width: `${seekWidth}px` }}
+            className={styles.seekProgress}
+          ></Box>
         </Box>
         <Stack direction={'row'} className={styles.buttons}>
           <IconButton
