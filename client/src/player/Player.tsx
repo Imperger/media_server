@@ -161,7 +161,7 @@ const Controls = memo(
             onChange={onVolumeWrapper}
           />
           <IconButton
-            sx={{ '&:focus': { outline: 'none' } }}
+            sx={{ '&:focus': { outline: 'none' }, marginLeft: '15px' }}
             onClick={toggleFullscreen}
           >
             <Fullscreen sx={{ fontSize: '1.5em' }}></Fullscreen>
