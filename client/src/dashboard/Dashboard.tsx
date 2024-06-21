@@ -12,7 +12,6 @@ import { CollectionType } from '../api-service/api-service';
 import { useSnackbar } from 'notistack';
 import { HttpStatusCode, isAxiosError } from 'axios';
 import { RejectedResponse } from '../lib/RejectedResponse';
-import { Link } from 'react-router-dom';
 
 interface View {
   id: number;
@@ -153,14 +152,14 @@ function Dashboard() {
     <Stack className={styles.container} direction={'row'} flexWrap="wrap">
       <AddViewCard onCreate={onCreate} />
       {collectionList.map((x) => (
-        <Link key={x.id} to={`folder-collection/${x.id}`}>
-          <ViewCard
-            caption={x.caption}
-            cover={x.cover}
-            onSync={() => onSync(x.id)}
-            onRemove={() => onRemove(x.id, x.type)}
-          />
-        </Link>
+        <ViewCard
+          key={x.id}
+          id={x.id}
+          caption={x.caption}
+          cover={x.cover}
+          onSync={() => onSync(x.id)}
+          onRemove={() => onRemove(x.id, x.type)}
+        />
       ))}
 
       <AddCollectionDialog
