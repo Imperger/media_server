@@ -46,6 +46,8 @@ export type FolderContentRecord = FileRecordVariant | FolderRecordVariant;
 
 @Injectable()
 export class FolderCollectionService {
+  private syncInProgress: number[] = [];
+
   constructor(
     @Inject('DB')
     private db: BetterSQLite3Database<{
@@ -120,16 +122,27 @@ export class FolderCollectionService {
     const collection = await this.FindFolder(id);
 
     if (collection !== null) {
-      if (Date.now() - collection.syncedAt <= timeout) {
+      if (
+        Date.now() - collection.syncedAt <= timeout ||
+        this.syncInProgress.indexOf(id) !== -1
+      ) {
         throw new TooManySyncFolderException();
       }
+
+      this.syncInProgress.push(id);
 
       await this.db
         .update(FolderCollection)
         .set({ syncedAt: Date.now() })
         .where(eq(FolderCollection.id, id));
 
-      return this.fileSyncService.syncFolder(collection.folder);
+      const syncResult = await this.fileSyncService.syncFolder(
+        collection.folder
+      );
+
+      this.syncInProgress.splice(this.syncInProgress.indexOf(id), 1);
+
+      return syncResult;
     }
 
     return 0;
