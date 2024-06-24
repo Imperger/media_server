@@ -22,6 +22,7 @@ import {
   FolderRecord
 } from '@/file/file-access.service';
 import { CreateCollectionDto } from './dto/create-collection.dts';
+import { FSHelper } from '@/lib/FSHelper';
 
 export interface CreateCollectionFolderResult extends CreateCollectionResult {
   syncedFiles: number;
@@ -61,6 +62,10 @@ export class FolderCollectionService {
   async CreateFolder(
     props: CreateCollectionDto
   ): Promise<CreateCollectionFolderResult> {
+    if (!(await FSHelper.isDirectory(props.folder))) {
+      throw new InvalidFolderPathException();
+    }
+
     const collection = await Transaction(this.db, async () => {
       const collection = await this.collectionService.CreateCollection(
         'folder',
