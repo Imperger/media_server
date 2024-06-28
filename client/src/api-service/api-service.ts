@@ -15,12 +15,22 @@ export interface SyncFolderResult {
 
 export type CollectionType = 'folder' | 'view';
 
-export interface CollectionRecord {
+interface CollectionBase {
   id: number;
-  type: CollectionType;
   caption: string;
   cover: string;
 }
+
+export interface CollectionFolder extends CollectionBase {
+  type: 'folder';
+  size: number;
+}
+
+export interface CollectionView extends CollectionBase {
+  type: 'view';
+}
+
+export type CollectionRecord = CollectionFolder | CollectionView;
 
 interface FileRecord {
   filename: string;
@@ -33,6 +43,8 @@ interface FileRecord {
 }
 interface FolderRecord {
   name: string;
+  size: number;
+  files: number;
   assetPrefix: string;
 }
 
@@ -112,6 +124,18 @@ export class ApiService {
   async deleteFile(filename: string): Promise<boolean> {
     try {
       await this.axios.delete(`file/${filename}`);
+    } catch (e) {
+      if (isAxiosError(e)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  async deleteFolder(collectionId: number, path: string): Promise<boolean> {
+    try {
+      await this.axios.delete(`folder/${collectionId}/${path}`);
     } catch (e) {
       if (isAxiosError(e)) {
         return false;

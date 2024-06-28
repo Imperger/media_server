@@ -10,6 +10,13 @@
     text-shadow: 1px 1px 1px black;
 }
 
+.size {
+    position: absolute;
+    bottom: 0;
+    left: 5px;
+    text-shadow: 1px 1px 1px black;
+}
+
 .actions {
     position: absolute;
     bottom: 0;

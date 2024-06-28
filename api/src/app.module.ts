@@ -7,7 +7,7 @@ import { DrizzleBetterSQLiteModule } from '@knaadh/nestjs-drizzle-better-sqlite3
 import { Collection } from './collection/schemas/collection.schema';
 import { DbConfig } from '../drizzle.config';
 import { FolderCollectionModule } from './folder-collection/folder-collection.module';
-import { FileSModule } from './file/file.module';
+import { FileModule } from './file/file.module';
 import { MediaToolModule } from './media-tool/media-tool.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 
@@ -26,7 +26,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
       config: { schema: { Collection } }
     }),
     FolderCollectionModule,
-    FileSModule,
+    FileModule,
     MediaToolModule
   ],
   controllers: [AppController],

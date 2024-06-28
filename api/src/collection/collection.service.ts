@@ -1,21 +1,35 @@
+import * as Path from 'path';
 import { Inject, Injectable } from '@nestjs/common';
 import { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 
 import { Collection } from './schemas/collection.schema';
 import { CreateCollectionException } from './exceptions';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
+import { Folder } from '@/file/schemas/folder.schema';
+import { FolderCollection } from '@/folder-collection/schemas/folder-collection.schema';
+import { PathHelper } from '@/lib/PathHelper';
 
 export interface CreateCollectionResult {
   id: number;
   cover: string;
 }
 
-export interface CollectionRecord {
+interface CollectionBase {
   id: number;
-  type: 'folder' | 'view';
   caption: string;
   cover: string;
 }
+
+export interface CollectionFolder extends CollectionBase {
+  type: 'folder';
+  size: number;
+}
+
+export interface CollectionView extends CollectionBase {
+  type: 'view';
+}
+
+export type CollectionRecord = CollectionFolder | CollectionView;
 
 @Injectable()
 export class CollectionService {
@@ -48,7 +62,23 @@ export class CollectionService {
   }
 
   async GetAll(): Promise<CollectionRecord[]> {
-    return this.db
+    const folders = (await this.db
+      .select({
+        id: Collection.id,
+        type: Collection.type,
+        caption: Collection.caption,
+        cover: Collection.cover,
+        size: Folder.size
+      })
+      .from(Collection)
+      .leftJoin(FolderCollection, eq(Collection.id, FolderCollection.id))
+      .leftJoin(
+        Folder,
+        sql`ltrim(substr(${FolderCollection.folder}, ${PathHelper.mediaEntry.length + 1}), ${Path.sep}) = ${Folder.path}`
+      )
+      .where(eq(Collection.type, 'folder'))) as CollectionFolder[];
+
+    const views = (await this.db
       .select({
         id: Collection.id,
         type: Collection.type,
@@ -56,6 +86,8 @@ export class CollectionService {
         cover: Collection.cover
       })
       .from(Collection)
-      .all();
+      .where(eq(Collection.type, 'view'))) as CollectionView[];
+
+    return [...folders, ...views];
   }
 }

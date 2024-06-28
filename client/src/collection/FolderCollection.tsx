@@ -126,6 +126,14 @@ function FolderCollection() {
       )
     );
 
+  const onDeleteFolder = (name: string) =>
+    setContent(
+      ArrayHelper.filterFirst(
+        content,
+        (x) => !(x.type === 'folder' && x.name === name)
+      )
+    );
+
   useEffect(() => {
     const fetchFolderInfo = async () => {
       setMetainfo(await api.folderInfo(Number.parseInt(id!)));
@@ -176,7 +184,10 @@ function FolderCollection() {
                 <FolderCard
                   key={x.name}
                   name={x.name}
+                  size={x.size}
+                  files={x.files}
                   preview={`${baseURL}api/folder/preview/${x.assetPrefix}.jpg`}
+                  onDelete={onDeleteFolder}
                 />
               );
           }

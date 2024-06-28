@@ -12,6 +12,7 @@ import {
   Header,
   Headers,
   Param,
+  ParseIntPipe,
   Res,
   StreamableFile,
   UseGuards
@@ -19,6 +20,7 @@ import {
 import { FileAccessService } from './file-access.service';
 import { FileNotFoundException } from './exceptions';
 import { CacheControlGuard } from './guards/cache-control.guard';
+import { FolderAccessService } from './folder-access.service';
 
 interface RangeOptions {
   start?: number;
@@ -27,17 +29,24 @@ interface RangeOptions {
 
 @Controller('file')
 export class FileController {
-  constructor(private readonly fileAccessService: FileAccessService) {}
+  constructor(
+    private readonly fileAccessService: FileAccessService,
+    private readonly folderAccess: FolderAccessService
+  ) {}
 
-  @Get('content/*')
+  @Get('content/:collectionId/*')
   @Header('Accept-Ranges', 'bytes')
   @Header('Connection', 'keep-alive')
   async fileContent(
+    @Param('collectionId', ParseIntPipe) collectionId: number,
     @Param('*') filename: string,
     @Headers('Range') range: string,
     @Res({ passthrough: true }) res: FastifyReply
   ): Promise<StreamableFile> {
-    const fileRecord = await this.fileAccessService.findFile(filename);
+    const fileRecord = await this.fileAccessService.find(
+      collectionId,
+      filename
+    );
 
     if (fileRecord === null) {
       throw new FileNotFoundException();
@@ -84,13 +93,12 @@ export class FileController {
     );
   }
 
-  @Delete('*')
-  async delete(@Param('*') filename: string) {
-    if (await this.fileAccessService.remove(filename)) {
-      await this.fileAccessService.removeAssetsAssociatedWithFile(filename);
-    } else {
-      throw new FileNotFoundException();
-    }
+  @Delete(':collectionId/*')
+  async delete(
+    @Param('collectionId', ParseIntPipe) collectionId: number,
+    @Param('*') filename: string
+  ) {
+    await this.fileAccessService.removeMedia(collectionId, filename);
   }
 
   private contentRange(start: number, end: number, size: number) {

@@ -1,6 +1,6 @@
 import { useTitle } from '../layout/TitleContext';
 import { useEffect, useState } from 'react';
-import ViewCard from './ViewCard';
+import FolderCollectionCard from './FolderCollectionCard';
 import { Stack } from '@mui/material';
 
 import styles from './dashboard.module.css';
@@ -8,23 +8,20 @@ import { useApiService } from '../api-service/api-context';
 import AddViewCard from './AddCollectionCard';
 import AddCollectionDialog from './AddCollectionDialog';
 import { CreateCollectionParameters } from './type';
-import { CollectionType } from '../api-service/api-service';
+import {
+  CollectionFolder,
+  CollectionRecord,
+  CollectionType
+} from '../api-service/api-service';
 import { useSnackbar } from 'notistack';
 import { HttpStatusCode, isAxiosError } from 'axios';
 import { RejectedResponse } from '../lib/RejectedResponse';
-
-interface View {
-  id: number;
-  caption: string;
-  cover: string;
-  type: CollectionType;
-}
 
 function Dashboard() {
   const api = useApiService();
 
   const { setTitle } = useTitle();
-  const [collectionList, setCollectionList] = useState<View[]>([]);
+  const [collectionList, setCollectionList] = useState<CollectionRecord[]>([]);
   const [createCollectionDialogOpened, setCreateCollectionDialogOpened] =
     useState(false);
 
@@ -110,8 +107,9 @@ function Dashboard() {
               id: collection.id,
               caption,
               cover: collection.cover,
-              type: 'folder'
-            } as View
+              type: 'folder',
+              size: 0
+            } as CollectionFolder
           ].sort((a, b) =>
             a.caption < b.caption ? -1 : a.caption === b.caption ? 0 : 1
           )
@@ -151,16 +149,19 @@ function Dashboard() {
   return (
     <Stack className={styles.container} direction={'row'} flexWrap="wrap">
       <AddViewCard onCreate={onCreate} />
-      {collectionList.map((x) => (
-        <ViewCard
-          key={x.id}
-          id={x.id}
-          caption={x.caption}
-          cover={x.cover}
-          onSync={() => onSync(x.id)}
-          onRemove={() => onRemove(x.id, x.type)}
-        />
-      ))}
+      {collectionList.map((x) =>
+        x.type === 'folder' ? (
+          <FolderCollectionCard
+            key={x.id}
+            id={x.id}
+            caption={x.caption}
+            cover={x.cover}
+            size={x.size}
+            onSync={() => onSync(x.id)}
+            onRemove={() => onRemove(x.id, x.type)}
+          />
+        ) : null
+      )}
 
       <AddCollectionDialog
         open={createCollectionDialogOpened}

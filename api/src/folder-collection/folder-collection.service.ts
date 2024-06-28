@@ -16,13 +16,13 @@ import {
 } from '@/collection/collection.service';
 import { Transaction } from '@/lib/Transaction';
 import { FileSyncService } from '@/file/file-sync.service';
-import {
-  FileAccessService,
-  FileRecord,
-  FolderRecord
-} from '@/file/file-access.service';
+import { FileAccessService, FileRecord } from '@/file/file-access.service';
 import { CreateCollectionDto } from './dto/create-collection.dts';
 import { FSHelper } from '@/lib/FSHelper';
+import {
+  FolderAccessService,
+  FolderDescription
+} from '@/file/folder-access.service';
 
 export interface CreateCollectionFolderResult extends CreateCollectionResult {
   syncedFiles: number;
@@ -39,7 +39,7 @@ export interface FileRecordVariant extends FileRecord {
   type: 'file';
 }
 
-export interface FolderRecordVariant extends FolderRecord {
+export interface FolderRecordVariant extends FolderDescription {
   type: 'folder';
 }
 
@@ -56,7 +56,8 @@ export class FolderCollectionService {
     }>,
     private readonly collectionService: CollectionService,
     private readonly fileSyncService: FileSyncService,
-    private readonly fileAccessService: FileAccessService
+    private readonly fileAccessService: FileAccessService,
+    private readonly folderAccess: FolderAccessService
   ) {}
 
   async CreateFolder(
@@ -171,15 +172,19 @@ export class FolderCollectionService {
       throw new UnknownFolderException();
     }
 
-    const pathEntry = PathHelper.relativeToMedia(collection.folder);
-    const targetFolder = path.join(pathEntry, relativePath);
+    const collectionEntry = PathHelper.relativeToMedia(collection.folder);
+    const targetFolder = path.join(collectionEntry, relativePath);
 
     const files = (
-      await this.fileAccessService.listFolderFiles(targetFolder)
-    ).map<FileRecordVariant>((x) => ({ type: 'file', ...x }));
+      await this.fileAccessService.list(targetFolder)
+    ).map<FileRecordVariant>((x) => ({
+      type: 'file',
+      ...x,
+      filename: `${collectionId}/${path.relative(collectionEntry, x.filename)}`
+    }));
 
     const folders = (
-      await this.fileAccessService.listFolderFolders(targetFolder)
+      await this.folderAccess.list(targetFolder)
     ).map<FolderRecordVariant>((x) => ({ type: 'folder', ...x }));
 
     return [...files, ...folders];

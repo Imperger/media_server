@@ -1,7 +1,6 @@
-import * as path from 'path';
-import * as fs from 'fs/promises';
-import * as crypto from 'crypto';
-import { Inject, Injectable } from '@nestjs/common';
+import * as Path from 'path';
+import * as Fs from 'fs/promises';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 import { File } from './schemas/file.schema';
 import { PathHelper } from '@/lib/PathHelper';
@@ -9,6 +8,10 @@ import { eq, sql } from 'drizzle-orm';
 import { MediaToolService } from '@/media-tool/media-tool.service';
 import { ReadStream, createReadStream } from 'fs';
 import { FSHelper } from '@/lib/FSHelper';
+import { assetHash } from '@/lib/asset-hash';
+import { FileNotFoundException } from './exceptions';
+import { FolderCollectionService } from '@/folder-collection/folder-collection.service';
+import { FolderAccessService } from './folder-access.service';
 
 export interface FileRecord {
   filename: string;
@@ -20,11 +23,6 @@ export interface FileRecord {
   createdAt: number;
 }
 
-export interface FolderRecord {
-  name: string;
-  assetPrefix: string;
-}
-
 @Injectable()
 export class FileAccessService {
   constructor(
@@ -32,12 +30,16 @@ export class FileAccessService {
     private db: BetterSQLite3Database<{
       File: typeof File;
     }>,
-    private readonly mediaTool: MediaToolService
+    private readonly mediaTool: MediaToolService,
+    @Inject(forwardRef(() => FolderCollectionService))
+    private folderCollection: FolderCollectionService,
+    @Inject(forwardRef(() => FolderAccessService))
+    private folderAccess: FolderAccessService
   ) {}
 
   async create(filename: string): Promise<FileRecord | null> {
     try {
-      const stat = await fs.stat(path.join(PathHelper.mediaEntry, filename));
+      const stat = await Fs.stat(Path.join(PathHelper.mediaEntry, filename));
       const metainfo = await this.mediaTool.videoMetainfo(filename);
       const shared = {
         size: stat.size,
@@ -60,34 +62,76 @@ export class FileAccessService {
           set: shared
         });
 
-      return { filename, assetPrefix: this.assetHash(filename), ...shared };
+      return { filename, assetPrefix: assetHash(filename), ...shared };
     } catch (e) {
-      console.log(e);
       return null;
     }
   }
 
-  async remove(filename: string): Promise<boolean> {
-    const deleted =
-      (await this.db.delete(File).where(eq(File.filename, filename))).changes >
-      0;
+  /**
+   * Remove file from db and disk
+   * @param filename relative to 'media'
+   * @returns The file size if file was removed or -1 if not
+   */
+  async remove(filename: string): Promise<number> {
+    const deleted = await this.db
+      .delete(File)
+      .where(eq(File.filename, filename))
+      .returning({ size: File.size });
 
     try {
-      await fs.unlink(path.join(PathHelper.mediaEntry, filename));
+      await Fs.unlink(Path.join(PathHelper.mediaEntry, filename));
     } catch (e) {}
 
-    return deleted;
+    return deleted.length > 0 ? deleted[0].size : -1;
   }
 
   async removeAssetsAssociatedWithFile(filename: string): Promise<void> {
     try {
-      await fs.unlink(
-        path.join(PathHelper.previewEntry, `${this.assetHash(filename)}.jpg`)
+      await Fs.unlink(
+        Path.join(PathHelper.previewEntry, `${assetHash(filename)}.jpg`)
       );
     } catch (e) {}
   }
 
-  async findFile(filename: string): Promise<FileRecord | null> {
+  /**
+   * Completely remove file with all related content
+   * @param filename filename
+   */
+  async removeMediaByFilename(filename: string): Promise<number> {
+    const removedSize = await this.remove(filename);
+    if (removedSize !== -1) {
+      await this.removeAssetsAssociatedWithFile(filename);
+    } else {
+      throw new FileNotFoundException();
+    }
+
+    return removedSize;
+  }
+
+  async removeMedia(
+    collectionId: number,
+    relativeToCollectionPath: string
+  ): Promise<void> {
+    const collection = await this.folderCollection.FindFolder(collectionId);
+
+    if (collection === null) {
+      throw new FileNotFoundException();
+    }
+
+    const collectionRoot = PathHelper.relativeToMedia(collection.folder);
+    const filename = Path.join(collectionRoot, relativeToCollectionPath);
+
+    const removedSize = await this.removeMediaByFilename(filename);
+
+    await this.folderAccess.increaseStatAndUpdateParent(
+      collectionRoot,
+      PathHelper.fileFolder(filename),
+      { size: -removedSize, files: -1 }
+    );
+  }
+
+  async findFileByFilename(filename: string): Promise<FileRecord | null> {
     const file = (
       await this.db
         .select({
@@ -100,9 +144,27 @@ export class FileAccessService {
         })
         .from(File)
         .where(eq(File.filename, filename))
-    ).map((x) => ({ ...x, assetPrefix: this.assetHash(x.filename) }));
+    ).map((x) => ({ ...x, assetPrefix: assetHash(x.filename) }));
 
     return file.length > 0 ? file[0] : null;
+  }
+
+  async find(
+    collectionId: number,
+    relativeToCollectionPath: string
+  ): Promise<FileRecord | null> {
+    const collection = await this.folderCollection.FindFolder(collectionId);
+
+    if (collection === null) {
+      return null;
+    }
+
+    return this.findFileByFilename(
+      Path.join(
+        PathHelper.relativeToMedia(collection.folder),
+        relativeToCollectionPath
+      )
+    );
   }
 
   /**
@@ -110,7 +172,7 @@ export class FileAccessService {
    * @param path Example 'a', 'a/b'
    * @returns file list
    */
-  async listFolderFiles(path: string): Promise<FileRecord[]> {
+  async list(path: string): Promise<FileRecord[]> {
     let filter = '';
     if (path === '.') {
       path = '';
@@ -134,51 +196,13 @@ export class FileAccessService {
         .where(
           sql`${File.filename} like ${filter} and ${File.depth} = ${PathHelper.fileDepth(path)}`
         )
-    ).map((x) => ({ ...x, assetPrefix: this.assetHash(x.filename) }));
-  }
-
-  async listFolderFolders(relativePath: string): Promise<FolderRecord[]> {
-    let filter = '';
-    if (relativePath === '.') {
-      relativePath = '';
-      filter = '%';
-    } else {
-      relativePath += '/';
-      filter = `${relativePath}%`;
-    }
-
-    // TODO This returns a lot of data, optimization needed
-    const result = (
-      await this.db
-        .select({ filename: File.filename })
-        .from(File)
-        .where(
-          sql`${File.filename} like ${filter} and ${File.depth} >= ${PathHelper.fileDepth(relativePath) + 1}`
-        )
-    ).map((x) => {
-      let name = x.filename.substring(relativePath.length);
-      name = name.substring(0, name.indexOf(path.sep));
-      return { name, preview: x.filename };
-    });
-
-    const folders = new Map<string, string>();
-
-    for (const record of result) {
-      if (!folders.has(record.name)) {
-        folders.set(record.name, this.assetHash(record.preview));
-      }
-    }
-
-    return [...folders].map(([name, assetPrefix]) => ({
-      name,
-      assetPrefix
-    }));
+    ).map((x) => ({ ...x, assetPrefix: assetHash(x.filename) }));
   }
 
   async generateAssets(file: FileRecord): Promise<boolean> {
     return this.mediaTool.generateAssets(file.filename, {
       previewTimepoint: Math.round(file.duration / 10),
-      assetPrefix: this.assetHash(file.filename)
+      assetPrefix: assetHash(file.filename)
     });
   }
 
@@ -186,16 +210,12 @@ export class FileAccessService {
     filename: string,
     fallbackFilename: string
   ): Promise<ReadStream> {
-    const fullPath = path.join(PathHelper.previewEntry, filename);
+    const fullPath = Path.join(PathHelper.previewEntry, filename);
 
-    const fallbackPath = path.join(PathHelper.previewEntry, fallbackFilename);
+    const fallbackPath = Path.join(PathHelper.previewEntry, fallbackFilename);
 
     const src = (await FSHelper.exists(fullPath)) ? fullPath : fallbackPath;
 
     return createReadStream(src);
-  }
-
-  assetHash(filename: string): string {
-    return crypto.createHash('md5').update(filename).digest('hex');
   }
 }

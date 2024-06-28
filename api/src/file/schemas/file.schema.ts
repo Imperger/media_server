@@ -14,6 +14,6 @@ export const File = sqliteTable(
     syncedAt: integer('syncedAt').notNull()
   },
   (table) => ({
-    depthIndex: index('depth_index').on(table.depth)
+    fileDepthIndex: index('file_depth_index').on(table.depth)
   })
 );

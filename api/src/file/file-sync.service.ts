@@ -6,6 +6,7 @@ import { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 import { count, eq, sql } from 'drizzle-orm';
 import { FileAccessService } from './file-access.service';
 import { PathHelper } from '@/lib/PathHelper';
+import { FolderAccessService } from './folder-access.service';
 
 @Injectable()
 export class FileSyncService {
@@ -14,30 +15,56 @@ export class FileSyncService {
     private db: BetterSQLite3Database<{
       File: typeof File;
     }>,
-    private readonly fileAccess: FileAccessService
+    private readonly fileAccess: FileAccessService,
+    private readonly folderAccess: FolderAccessService
   ) {}
 
   async syncFolder(absolutePath: string): Promise<number> {
     console.log(`syncFolder(${absolutePath})`);
+
     const syncStartTime = Date.now();
 
+    await this.folderAccess.removeRecordWithChilds(
+      PathHelper.relativeToMedia(absolutePath)
+    );
     const syncedBefore = await this.fileCountInFolder(absolutePath);
 
     let syncedNow = 0;
+    const currentFolder = {
+      path: path.parse(await this.initializeCurrentDir(absolutePath)).dir,
+      size: 0,
+      files: 0
+    };
     for await (const filename of FSHelper.EnumerateFiles(absolutePath)) {
-      if (!this.isSupportedFile(filename)) {
+      if (!this.isSupportedFileType(filename)) {
         continue;
       }
 
       const relativeToMedia = PathHelper.relativeToMedia(filename);
 
       const sizeBeforeSync =
-        (await this.fileAccess.findFile(relativeToMedia))?.size ?? -1;
+        (await this.fileAccess.findFileByFilename(relativeToMedia))?.size ?? -1;
 
       const file = await this.fileAccess.create(relativeToMedia);
 
       if (file === null) {
         continue;
+      }
+
+      if (PathHelper.isFileInFolder(relativeToMedia, currentFolder.path)) {
+        currentFolder.size += file.size;
+        ++currentFolder.files;
+      } else {
+        await this.folderAccess.createAndUpdateParent(
+          PathHelper.relativeToMedia(absolutePath),
+          currentFolder.path,
+          currentFolder.size,
+          currentFolder.files
+        );
+
+        currentFolder.path = path.parse(relativeToMedia).dir;
+        currentFolder.size = file.size;
+        currentFolder.files = 1;
       }
 
       if (sizeBeforeSync !== file.size) {
@@ -47,15 +74,35 @@ export class FileSyncService {
       ++syncedNow;
     }
 
+    await this.folderAccess.createAndUpdateParent(
+      PathHelper.relativeToMedia(absolutePath),
+      currentFolder.path,
+      currentFolder.size,
+      currentFolder.files
+    );
+
     await this.disposeDanglingRecords(absolutePath, syncStartTime);
 
     return syncedNow - syncedBefore;
   }
 
+  private async initializeCurrentDir(absolutePath: string): Promise<string> {
+    const enumerator = FSHelper.EnumerateFiles(absolutePath);
+    const path = PathHelper.relativeToMedia((await enumerator.next()).value);
+
+    // Explicitly destroy generator that owned dir handle to close it
+    await enumerator.return(0);
+
+    return path;
+  }
+
   async desyncFolder(absolutePath: string): Promise<void> {
     console.log(`desyncFolder(${absolutePath})`);
-    const folderLike = `${PathHelper.relativeToMedia(absolutePath)}%`;
+    const relativeToMedia = PathHelper.relativeToMedia(absolutePath);
+    const folderLike = `${relativeToMedia}%`;
     const filter = sql`${File.filename} like ${folderLike}`;
+
+    await this.folderAccess.removeRecordWithChilds(relativeToMedia);
 
     while (true) {
       const file = await this.db
@@ -69,7 +116,6 @@ export class FileSyncService {
       }
 
       await this.fileAccess.removeAssetsAssociatedWithFile(file[0].filename);
-
       await this.db.delete(File).where(eq(File.id, file[0].id));
     }
   }
@@ -109,7 +155,7 @@ export class FileSyncService {
     return danglingFiles.length;
   }
 
-  private isSupportedFile(filename: string): boolean {
+  private isSupportedFileType(filename: string): boolean {
     const extname = path.extname(filename);
     return extname === '.mp4';
   }

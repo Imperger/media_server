@@ -135,7 +135,6 @@ function FileCard(props: FileCardProps) {
         </Card>
       </Link>
       <Menu
-        id="basic-menu"
         anchorEl={menuAnchor}
         open={isMenuOpen}
         onClose={closeMenu}

@@ -11,16 +11,18 @@ import { Delete, Sync } from '@mui/icons-material';
 import { blueGrey, red } from '@mui/material/colors';
 import { DeleteConfirmDialog } from '../collection/DeleteConfirmDialog';
 import { Link } from 'react-router-dom';
+import prettyBytes from 'pretty-bytes';
 
 export interface ViewCardParams {
   id: number;
   cover: string;
   caption?: string;
+  size: number;
   onSync: () => void;
   onRemove: () => void;
 }
 
-function ViewCard(props: ViewCardParams) {
+function FolderCollectionCard(props: ViewCardParams) {
   const baseURL = import.meta.env.BASE_URL;
   const caption = useMemo(() => props.caption ?? '', [props.caption]);
   const [deleteConfirmDialogOpened, setDeleteConfirmDialogOpened] =
@@ -54,6 +56,15 @@ function ViewCard(props: ViewCardParams) {
           >
             {caption}
           </Typography>
+          <Typography
+            className={styles.size}
+            style={{ margin: 0 }}
+            gutterBottom
+            variant="subtitle1"
+            component="div"
+          >
+            {prettyBytes(props.size)}
+          </Typography>
           <CardActions className={styles.actions} sx={{ padding: 0 }}>
             <IconButton
               onClick={(e) => preventDefault(e, props.onSync)}
@@ -82,4 +93,4 @@ function ViewCard(props: ViewCardParams) {
   );
 }
 
-export default ViewCard;
+export default FolderCollectionCard;
