@@ -1,3 +1,4 @@
+import * as mime from 'mime';
 import {
   Controller,
   Delete,
@@ -5,6 +6,7 @@ import {
   Header,
   Param,
   ParseIntPipe,
+  Res,
   StreamableFile,
   UseGuards
 } from '@nestjs/common';
@@ -12,6 +14,7 @@ import { FileAccessService } from './file-access.service';
 import { PathHelper } from '@/lib/PathHelper';
 import { CacheControlGuard } from './guards/cache-control.guard';
 import { FolderAccessService } from './folder-access.service';
+import { FastifyReply } from 'fastify';
 
 @Controller('folder')
 export class FolderController {
@@ -25,7 +28,12 @@ export class FolderController {
   @UseGuards(
     CacheControlGuard({ maxAge: 300, assetEntry: PathHelper.previewEntry })
   )
-  async preview(@Param('filename') filename: string) {
+  async preview(
+    @Param('filename') filename: string,
+    @Res({ passthrough: true }) res: FastifyReply
+  ) {
+    this.setupContentType(filename, res);
+
     return new StreamableFile(
       await this.fileAccessService.getPreviewStream(
         filename,
@@ -40,5 +48,10 @@ export class FolderController {
     @Param('*') path: string
   ) {
     await this.folderAccess.remove(collectionId, path);
+  }
+
+  private setupContentType(filename: string, response: FastifyReply): void {
+    const mimeType = mime.lookup(filename) || 'application/octet-stream';
+    response.header('Content-Type', mimeType);
   }
 }
