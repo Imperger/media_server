@@ -12,6 +12,14 @@ export class FileNotFoundException extends FileException {
   status = HttpStatus.NOT_FOUND;
 }
 
+export class FileContentNotFoundException extends FileException {
+  status = HttpStatus.NOT_FOUND;
+}
+
+export class PreviewNotFoundException extends FileException {
+  status = HttpStatus.NOT_FOUND;
+}
+
 export const isFileException = exceptionGuardFactory(FileException, {
   min: 130,
   max: 140

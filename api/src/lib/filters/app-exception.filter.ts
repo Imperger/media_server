@@ -9,9 +9,13 @@ export class AppExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<FastifyReply>();
 
-    response.status(exception.status).send({
-      code: exception.code,
-      message: exception.message
-    });
+    response.status(exception.status).send(
+      exception.code !== undefined
+        ? {
+            code: exception.code,
+            message: exception.message
+          }
+        : void 0
+    );
   }
 }

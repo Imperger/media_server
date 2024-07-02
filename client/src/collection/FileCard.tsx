@@ -10,7 +10,7 @@ import {
   Typography
 } from '@mui/material';
 import styles from './file-card.module.css';
-import { MouseEvent, useMemo, useState } from 'react';
+import { MouseEvent, SyntheticEvent, useMemo, useState } from 'react';
 import { Delete, Info, Menu as MenuIcon, PlayArrow } from '@mui/icons-material';
 import { formatDuration } from '../lib/format-duration';
 import FileInfoDialog from './FileInfoDialog';
@@ -90,6 +90,15 @@ function FileCard(props: FileCardProps) {
 
   const saveLastWacthed = () => dispatch(updateLastWatched(name));
 
+  const fallbackToDefaultCover = (
+    e?: SyntheticEvent<HTMLImageElement, Event>
+  ) => {
+    if (e !== undefined) {
+      e.currentTarget.onerror = null;
+      e.currentTarget.src = `${baseURL}img/default_preview.webp`;
+    }
+  };
+
   return (
     <>
       <Link
@@ -103,6 +112,7 @@ function FileCard(props: FileCardProps) {
             component="img"
             height="140"
             image={props.preview}
+            onError={fallbackToDefaultCover}
           ></CardMedia>
           <PlayArrow
             sx={{ fontSize: '2em' }}

@@ -1,4 +1,5 @@
 import * as mime from 'mime';
+import * as Path from 'path';
 import {
   Controller,
   Delete,
@@ -35,9 +36,8 @@ export class FolderController {
     this.setupContentType(filename, res);
 
     return new StreamableFile(
-      await this.fileAccessService.getPreviewStream(
-        filename,
-        'folder_cover.jpg'
+      await this.fileAccessService.createContentStream(
+        Path.join(PathHelper.previewEntry, filename)
       )
     );
   }

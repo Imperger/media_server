@@ -1,5 +1,4 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import * as Path from 'path';
 import type { FastifyReply } from 'fastify';
 import * as rangeParser from 'range-parser';
 import * as mime from 'mime-types';
@@ -17,15 +16,10 @@ import {
   StreamableFile,
   UseGuards
 } from '@nestjs/common';
-import { FileAccessService } from './file-access.service';
-import { FileNotFoundException } from './exceptions';
+import { FileAccessService, RangeOptions } from './file-access.service';
+import { FileContentNotFoundException } from './exceptions';
 import { CacheControlGuard } from './guards/cache-control.guard';
 import { FolderAccessService } from './folder-access.service';
-
-interface RangeOptions {
-  start?: number;
-  end?: number;
-}
 
 @Controller('file')
 export class FileController {
@@ -49,7 +43,7 @@ export class FileController {
     );
 
     if (fileRecord === null) {
-      throw new FileNotFoundException();
+      throw new FileContentNotFoundException();
     }
 
     this.setupContentType(filename, res);
@@ -66,12 +60,12 @@ export class FileController {
       res.status(206);
     }
 
-    const file = fs.createReadStream(
-      path.join(PathHelper.mediaEntry, filename),
-      streamOptions
+    return new StreamableFile(
+      await this.fileAccessService.createContentStream(
+        Path.join(PathHelper.mediaEntry, filename),
+        streamOptions
+      )
     );
-
-    return new StreamableFile(file);
   }
 
   @Get('preview/:filename')
@@ -86,9 +80,8 @@ export class FileController {
     this.setupContentType(filename, res);
 
     return new StreamableFile(
-      await this.fileAccessService.getPreviewStream(
-        filename,
-        'default_preview.webp'
+      await this.fileAccessService.createContentStream(
+        Path.join(PathHelper.previewEntry, filename)
       )
     );
   }

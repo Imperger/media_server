@@ -9,7 +9,7 @@ import { MediaToolService } from '@/media-tool/media-tool.service';
 import { ReadStream, createReadStream } from 'fs';
 import { FSHelper } from '@/lib/FSHelper';
 import { assetHash } from '@/lib/asset-hash';
-import { FileNotFoundException } from './exceptions';
+import { FileNotFoundException, PreviewNotFoundException } from './exceptions';
 import { FolderCollectionService } from '@/folder-collection/folder-collection.service';
 import { FolderAccessService } from './folder-access.service';
 
@@ -21,6 +21,11 @@ export interface FileRecord {
   duration: number;
   assetPrefix: string;
   createdAt: number;
+}
+
+export interface RangeOptions {
+  start?: number;
+  end?: number;
 }
 
 @Injectable()
@@ -206,16 +211,14 @@ export class FileAccessService {
     });
   }
 
-  async getPreviewStream(
+  async createContentStream(
     filename: string,
-    fallbackFilename: string
+    options?: RangeOptions
   ): Promise<ReadStream> {
-    const fullPath = Path.join(PathHelper.previewEntry, filename);
+    if (!(await FSHelper.exists(filename))) {
+      throw new PreviewNotFoundException();
+    }
 
-    const fallbackPath = Path.join(PathHelper.previewEntry, fallbackFilename);
-
-    const src = (await FSHelper.exists(fullPath)) ? fullPath : fallbackPath;
-
-    return createReadStream(src);
+    return createReadStream(filename, options);
   }
 }

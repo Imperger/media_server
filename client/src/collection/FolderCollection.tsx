@@ -56,6 +56,12 @@ function FolderCollection() {
     [content]
   );
 
+  function folderPreview(assetPrefix: string): string {
+    return assetPrefix === 'folder_cover'
+      ? `${baseURL}img/folder_cover.jpg`
+      : `${baseURL}api/folder/preview/${assetPrefix}.jpg`;
+  }
+
   const scrollToLastWatched = () => {
     if (fileListRef.current === null) {
       return;
@@ -186,7 +192,7 @@ function FolderCollection() {
                   name={x.name}
                   size={x.size}
                   files={x.files}
-                  preview={`${baseURL}api/folder/preview/${x.assetPrefix}.jpg`}
+                  preview={folderPreview(x.assetPrefix)}
                   onDelete={onDeleteFolder}
                 />
               );
