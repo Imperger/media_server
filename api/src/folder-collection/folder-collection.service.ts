@@ -23,10 +23,7 @@ import {
   FolderAccessService,
   FolderDescription
 } from '@/file/folder-access.service';
-
-export interface CreateCollectionFolderResult extends CreateCollectionResult {
-  syncedFiles: number;
-}
+import { LiveFeedService } from '@/live-feed/live-feed.service';
 
 export interface FindFolderResult {
   id: number;
@@ -57,12 +54,13 @@ export class FolderCollectionService {
     private readonly collectionService: CollectionService,
     private readonly fileSyncService: FileSyncService,
     private readonly fileAccessService: FileAccessService,
-    private readonly folderAccess: FolderAccessService
+    private readonly folderAccess: FolderAccessService,
+    private readonly liveFeed: LiveFeedService
   ) {}
 
   async CreateFolder(
     props: CreateCollectionDto
-  ): Promise<CreateCollectionFolderResult> {
+  ): Promise<CreateCollectionResult> {
     if (!(await FSHelper.isDirectory(props.folder))) {
       throw new InvalidFolderPathException();
     }
@@ -94,9 +92,9 @@ export class FolderCollectionService {
       return collection;
     });
 
-    const syncedFiles = await this.fileSyncService.syncFolder(props.folder);
+    this.scheduleFolderSync(collection.id, props.folder);
 
-    return { ...collection, syncedFiles };
+    return { ...collection };
   }
 
   async RemoveFolder(id: number): Promise<boolean> {
@@ -123,7 +121,7 @@ export class FolderCollectionService {
     return result[0] ?? null;
   }
 
-  async syncFolder(id: number): Promise<number> {
+  async syncFolder(id: number): Promise<void> {
     const timeout = 5000;
     const collection = await this.FindFolder(id);
 
@@ -142,16 +140,8 @@ export class FolderCollectionService {
         .set({ syncedAt: Date.now() })
         .where(eq(FolderCollection.id, id));
 
-      const syncResult = await this.fileSyncService.syncFolder(
-        collection.folder
-      );
-
-      this.syncInProgress.splice(this.syncInProgress.indexOf(id), 1);
-
-      return syncResult;
+      this.scheduleFolderSync(collection.id, collection.folder);
     }
-
-    return 0;
   }
 
   async GetAllFolders(): Promise<string[]> {
@@ -200,5 +190,15 @@ export class FolderCollectionService {
     return (await this.GetAllFolders()).some((x) =>
       PathHelper.IsPathsOverlap(x, folder)
     );
+  }
+
+  private scheduleFolderSync(collectionId: number, folder: string) {
+    this.fileSyncService.syncFolder(collectionId, folder).then((addedFiles) => {
+      this.syncInProgress.splice(this.syncInProgress.indexOf(collectionId), 1);
+      this.liveFeed.FolderCollection.broadcastSyncComplete({
+        id: collectionId,
+        addedFiles
+      });
+    });
   }
 }

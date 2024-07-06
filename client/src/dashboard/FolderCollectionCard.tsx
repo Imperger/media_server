@@ -1,25 +1,62 @@
 import {
+  Box,
   Card,
   CardActions,
   CardMedia,
   IconButton,
+  LinearProgress,
   Typography
 } from '@mui/material';
-import styles from './view-card.module.css';
+import styles from './folder-collection-card.module.css';
 import { MouseEvent, useMemo, useState } from 'react';
 import { Delete, Sync } from '@mui/icons-material';
 import { blueGrey, red } from '@mui/material/colors';
 import { DeleteConfirmDialog } from '../collection/DeleteConfirmDialog';
 import { Link } from 'react-router-dom';
 import prettyBytes from 'pretty-bytes';
+import { formatDuration } from '../lib/format-duration';
 
 export interface ViewCardParams {
   id: number;
   cover: string;
   caption?: string;
   size: number;
+  syncProgress?: number;
+  eta?: number;
   onSync: () => void;
   onRemove: () => void;
+}
+
+interface SyncPropgressProps {
+  syncProgress?: number;
+  eta?: number;
+}
+
+function SyncProgress({ eta, syncProgress }: SyncPropgressProps) {
+  return syncProgress !== undefined ? (
+    <Box sx={{ position: 'absolute', top: 0, width: '100%' }}>
+      <LinearProgress
+        sx={{
+          position: 'relative',
+          backgroundColor: 'rgba(3, 169, 244, 0.6)',
+          '& .MuiLinearProgress-bar': {
+            backgroundColor: 'rgb(21, 101, 192)'
+          }
+        }}
+        className={styles.syncProgress}
+        variant="determinate"
+        value={syncProgress}
+      />
+      <Typography
+        className={styles.syncProgressEta}
+        variant="caption"
+        component="div"
+        color="text.secondary"
+      >
+        {formatDuration(eta!)}
+      </Typography>
+    </Box>
+  ) : null;
 }
 
 function FolderCollectionCard(props: ViewCardParams) {
@@ -43,6 +80,7 @@ function FolderCollectionCard(props: ViewCardParams) {
           style={{ margin: '2px' }}
           onClick={openCollection}
         >
+          <SyncProgress syncProgress={props.syncProgress} eta={props.eta} />
           <CardMedia
             component="img"
             height="140"

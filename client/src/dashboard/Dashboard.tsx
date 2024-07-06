@@ -1,5 +1,5 @@
 import { useTitle } from '../layout/TitleContext';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import FolderCollectionCard from './FolderCollectionCard';
 import { Stack } from '@mui/material';
 
@@ -16,6 +16,18 @@ import {
 import { useSnackbar } from 'notistack';
 import { HttpStatusCode, isAxiosError } from 'axios';
 import { RejectedResponse } from '../lib/RejectedResponse';
+
+interface FolderSyncProgress {
+  id: number;
+  size: number;
+  progress: number; // [0 - 1]
+  eta: number; // in seconds
+}
+
+interface FolderSyncComplete {
+  id: number;
+  addedFiles: number;
+}
 
 function Dashboard() {
   const api = useApiService();
@@ -40,23 +52,7 @@ function Dashboard() {
 
   const onSync = async (id: number) => {
     try {
-      const syncResult = await api.syncFolder(id);
-      if (syncResult.syncedFiles > 0) {
-        enqueueSnackbar(`Added ${syncResult.syncedFiles} files`, {
-          variant: 'info',
-          autoHideDuration: 2500
-        });
-      } else if (syncResult.syncedFiles < 0) {
-        enqueueSnackbar(`Removed ${-syncResult.syncedFiles} files`, {
-          variant: 'info',
-          autoHideDuration: 2500
-        });
-      } else {
-        enqueueSnackbar('Synced', {
-          variant: 'info',
-          autoHideDuration: 2000
-        });
-      }
+      await api.syncFolder(id);
     } catch (e) {
       if (
         isAxiosError(e) &&
@@ -114,13 +110,6 @@ function Dashboard() {
             a.caption < b.caption ? -1 : a.caption === b.caption ? 0 : 1
           )
         );
-
-        if (collection.syncedFiles > 0) {
-          enqueueSnackbar(`Synced ${collection.syncedFiles} files`, {
-            variant: 'info',
-            autoHideDuration: 2500
-          });
-        }
       } else if (type === 'view') {
         //const collection = await api.CreateViewCollection(caption);
       }
@@ -146,6 +135,69 @@ function Dashboard() {
     }
   };
 
+  const folderSyncProgress = useCallback((progress: FolderSyncProgress[]) => {
+    setCollectionList((collectionList) =>
+      collectionList.map((c) => {
+        const updated = progress.find((p) => p.id === c.id);
+
+        return updated
+          ? {
+              ...c,
+              size: updated.size,
+              syncProgress: updated.progress,
+              eta: updated.eta
+            }
+          : c;
+      })
+    );
+  }, []);
+
+  const folderSyncComplete = (complete: FolderSyncComplete) => {
+    if (complete.addedFiles > 0) {
+      enqueueSnackbar(`Added ${complete.addedFiles} files`, {
+        variant: 'info',
+        autoHideDuration: 2500
+      });
+    } else if (complete.addedFiles < 0) {
+      enqueueSnackbar(`Removed ${-complete.addedFiles} files`, {
+        variant: 'info',
+        autoHideDuration: 2500
+      });
+    } else {
+      enqueueSnackbar('Synced', {
+        variant: 'info',
+        autoHideDuration: 2000
+      });
+    }
+
+    setCollectionList((collectionList) =>
+      collectionList.map((c) => {
+        return complete.id === c.id
+          ? { ...c, syncProgress: undefined, eta: undefined }
+          : c;
+      })
+    );
+  };
+
+  useEffect(() => {
+    api.liveFeed.subscribe<FolderSyncProgress[]>(
+      'folderCollection.syncProgress',
+      folderSyncProgress
+    );
+    api.liveFeed.subscribe<FolderSyncComplete>(
+      'folderCollection.syncComplete',
+      folderSyncComplete
+    );
+
+    return () => {
+      api.liveFeed.unsubscribe('folderCollection.syncProgress');
+      api.liveFeed.unsubscribe('folderCollection.syncComplete');
+    };
+  }, []);
+
+  const syncProgress = (value: number | undefined) =>
+    value === undefined ? value : value * 100;
+
   return (
     <Stack className={styles.container} direction={'row'} flexWrap="wrap">
       <AddViewCard onCreate={onCreate} />
@@ -157,6 +209,8 @@ function Dashboard() {
             caption={x.caption}
             cover={x.cover}
             size={x.size}
+            syncProgress={syncProgress(x.syncProgress)}
+            eta={x.eta}
             onSync={() => onSync(x.id)}
             onRemove={() => onRemove(x.id, x.type)}
           />

@@ -7,6 +7,12 @@ import { count, eq, sql } from 'drizzle-orm';
 import { FileAccessService } from './file-access.service';
 import { PathHelper } from '@/lib/PathHelper';
 import { FolderAccessService } from './folder-access.service';
+import { SyncProgressDecoratorService } from '@/live-feed/sync-progress-decorator.service';
+
+interface FolderInitState {
+  path: string;
+  files: number;
+}
 
 @Injectable()
 export class FileSyncService {
@@ -16,22 +22,29 @@ export class FileSyncService {
       File: typeof File;
     }>,
     private readonly fileAccess: FileAccessService,
-    private readonly folderAccess: FolderAccessService
+    private readonly folderAccess: FolderAccessService,
+    private readonly syncProgressDecorator: SyncProgressDecoratorService
   ) {}
 
-  async syncFolder(absolutePath: string): Promise<number> {
-    console.log(`syncFolder(${absolutePath})`);
-
+  async syncFolder(
+    collectionId: number,
+    absolutePath: string
+  ): Promise<number> {
     const syncStartTime = Date.now();
 
     await this.folderAccess.removeRecordWithChilds(
       PathHelper.relativeToMedia(absolutePath)
     );
+
+    const completePromise = this.syncProgressDecorator.onInit(collectionId);
+
     const syncedBefore = await this.fileCountInFolder(absolutePath);
 
     let syncedNow = 0;
+    const presyncState = await this.folderPresyncState(absolutePath);
+    let totalSize = 0;
     const currentFolder = {
-      path: path.parse(await this.initializeCurrentDir(absolutePath)).dir,
+      path: path.parse(presyncState.path).dir,
       size: 0,
       files: 0
     };
@@ -71,8 +84,17 @@ export class FileSyncService {
         await this.fileAccess.generateAssets(file);
       }
 
+      totalSize += file.size;
       ++syncedNow;
+
+      this.syncProgressDecorator.onProgress(
+        collectionId,
+        totalSize,
+        syncedNow / presyncState.files
+      );
     }
+
+    await this.syncProgressDecorator.onComplete(collectionId);
 
     await this.folderAccess.createAndUpdateParent(
       PathHelper.relativeToMedia(absolutePath),
@@ -83,21 +105,28 @@ export class FileSyncService {
 
     await this.disposeDanglingRecords(absolutePath, syncStartTime);
 
+    await completePromise;
+
     return syncedNow - syncedBefore;
   }
 
-  private async initializeCurrentDir(absolutePath: string): Promise<string> {
+  private async folderPresyncState(
+    absolutePath: string
+  ): Promise<FolderInitState> {
     const enumerator = FSHelper.EnumerateFiles(absolutePath);
     const path = PathHelper.relativeToMedia((await enumerator.next()).value);
 
-    // Explicitly destroy generator that owned dir handle to close it
-    await enumerator.return(0);
+    let files = +this.isSupportedFileType(path);
+    for await (const filename of enumerator) {
+      if (this.isSupportedFileType(filename)) {
+        ++files;
+      }
+    }
 
-    return path;
+    return { path, files };
   }
 
   async desyncFolder(absolutePath: string): Promise<void> {
-    console.log(`desyncFolder(${absolutePath})`);
     const relativeToMedia = PathHelper.relativeToMedia(absolutePath);
     const folderLike = `${relativeToMedia}%`;
     const filter = sql`${File.filename} like ${folderLike}`;

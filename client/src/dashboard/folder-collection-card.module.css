@@ -2,6 +2,15 @@
     position: relative;
 }
 
+.syncProgress {
+    top: 0;
+    width: 100%;
+}
+
+.syncProgressEta {
+    transform: translateX(50%);
+}
+
 .title {
     position: absolute;
     left: 50%;

@@ -10,6 +10,7 @@ import { FolderCollectionModule } from './folder-collection/folder-collection.mo
 import { FileModule } from './file/file.module';
 import { MediaToolModule } from './media-tool/media-tool.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { LiveFeedModule } from './live-feed/live-feed.module';
 
 @Module({
   imports: [
@@ -27,7 +28,8 @@ import { ServeStaticModule } from '@nestjs/serve-static';
     }),
     FolderCollectionModule,
     FileModule,
-    MediaToolModule
+    MediaToolModule,
+    LiveFeedModule
   ],
   controllers: [AppController],
   providers: [AppService]

@@ -7,7 +7,11 @@ export default defineConfig({
   server: {
     port: 8080,
     proxy: {
-      '/api': 'http://api.dev.wsl:3000'
+      '/api': 'http://api.dev.wsl:3000',
+      '/socket.io': {
+        target: 'ws://api.dev.wsl:3000',
+        ws: true
+      }
     }
   }
 });

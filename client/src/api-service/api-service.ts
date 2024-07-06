@@ -1,12 +1,9 @@
 import axios, { AxiosInstance, isAxiosError } from 'axios';
+import { LiveFeed } from './live-feed';
 
 export interface CreateCollectionResult {
   id: number;
   cover: string;
-}
-
-export interface CreateFolderCollectionResult extends CreateCollectionResult {
-  syncedFiles: number;
 }
 
 export interface SyncFolderResult {
@@ -24,6 +21,8 @@ interface CollectionBase {
 export interface CollectionFolder extends CollectionBase {
   type: 'folder';
   size: number;
+  syncProgress?: number;
+  eta?: number; // in seconds
 }
 
 export interface CollectionView extends CollectionBase {
@@ -66,9 +65,11 @@ export interface FolderMetainfo {
 
 export class ApiService {
   private readonly axios: AxiosInstance;
+  public readonly liveFeed: LiveFeed;
 
   constructor(baseURL: string) {
     this.axios = axios.create({ baseURL });
+    this.liveFeed = new LiveFeed();
   }
 
   async GetCollecionList(): Promise<CollectionRecord[]> {
@@ -79,7 +80,7 @@ export class ApiService {
     caption: string,
     collectionId: string,
     folder: string
-  ): Promise<CreateFolderCollectionResult> {
+  ): Promise<CreateCollectionResult> {
     return (
       await this.axios.post('collection-folder', {
         ...(caption.length > 0 && { caption }),
@@ -93,9 +94,8 @@ export class ApiService {
     await this.axios.delete(`collection-folder/${id}`);
   }
 
-  async syncFolder(id: number): Promise<SyncFolderResult> {
-    return (await this.axios.patch<SyncFolderResult>(`collection-folder/${id}`))
-      .data;
+  async syncFolder(id: number): Promise<void> {
+    await this.axios.patch<SyncFolderResult>(`collection-folder/${id}`);
   }
 
   async folderInfo(id: number): Promise<FolderMetainfo> {
