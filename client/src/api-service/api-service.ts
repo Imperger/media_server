@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, isAxiosError } from 'axios';
+
 import { LiveFeed } from './live-feed';
 
 export interface CreateCollectionResult {
@@ -72,11 +73,11 @@ export class ApiService {
     this.liveFeed = new LiveFeed();
   }
 
-  async GetCollecionList(): Promise<CollectionRecord[]> {
+  async getCollecionList(): Promise<CollectionRecord[]> {
     return (await this.axios.get<CollectionRecord[]>('collection')).data;
   }
 
-  async CreateFolderCollection(
+  async createFolderCollection(
     caption: string,
     collectionId: string,
     folder: string
@@ -90,7 +91,7 @@ export class ApiService {
     ).data;
   }
 
-  async RemoveCollectionFolder(id: number): Promise<void> {
+  async removeCollectionFolder(id: number): Promise<void> {
     await this.axios.delete(`collection-folder/${id}`);
   }
 
@@ -115,7 +116,7 @@ export class ApiService {
     ).data;
   }
 
-  async CreateViewCollection(
+  async createViewCollection(
     _caption: string
   ): Promise<CreateCollectionResult> {
     return { id: -1, cover: '' };

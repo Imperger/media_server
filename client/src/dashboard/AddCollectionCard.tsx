@@ -1,6 +1,7 @@
-import { Card, IconButton } from '@mui/material';
-import styles from './add-view-card.module.css';
 import { Add } from '@mui/icons-material';
+import { Card, IconButton } from '@mui/material';
+
+import styles from './add-view-card.module.css';
 
 export interface AddViewCardsProps {
   onCreate: () => void;

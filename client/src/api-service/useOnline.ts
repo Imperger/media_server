@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+
 import { useApiService } from './api-context';
 
 export function useOnline() {

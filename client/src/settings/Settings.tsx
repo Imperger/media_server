@@ -1,6 +1,7 @@
 import Box from '@mui/material/Box';
-import { useTitle } from '../layout/TitleContext';
 import { useEffect } from 'react';
+
+import { useTitle } from '../layout/TitleContext';
 
 function Settings() {
   const { setTitle } = useTitle();

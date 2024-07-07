@@ -1,21 +1,22 @@
-import { useTitle } from '../layout/TitleContext';
-import { useCallback, useEffect, useState } from 'react';
-import FolderCollectionCard from './FolderCollectionCard';
 import { Stack } from '@mui/material';
+import { HttpStatusCode, isAxiosError } from 'axios';
+import { useSnackbar } from 'notistack';
+import { useCallback, useEffect, useState } from 'react';
 
-import styles from './dashboard.module.css';
 import { useApiService } from '../api-service/api-context';
-import AddViewCard from './AddCollectionCard';
-import AddCollectionDialog from './AddCollectionDialog';
-import { CreateCollectionParameters } from './type';
 import {
   CollectionFolder,
   CollectionRecord,
   CollectionType
 } from '../api-service/api-service';
-import { useSnackbar } from 'notistack';
-import { HttpStatusCode, isAxiosError } from 'axios';
+import { useTitle } from '../layout/TitleContext';
 import { RejectedResponse } from '../lib/RejectedResponse';
+
+import AddViewCard from './AddCollectionCard';
+import AddCollectionDialog from './AddCollectionDialog';
+import styles from './dashboard.module.css';
+import FolderCollectionCard from './FolderCollectionCard';
+import { CreateCollectionParameters } from './type';
 
 interface FolderSyncProgress {
   id: number;
@@ -41,7 +42,7 @@ function Dashboard() {
     setTitle('Dashboard');
 
     const fetchCollectionList = async () =>
-      setCollectionList(await api.GetCollecionList());
+      setCollectionList(await api.getCollecionList());
 
     fetchCollectionList();
   }, []);
@@ -69,7 +70,7 @@ function Dashboard() {
   const onRemove = async (id: number, type: CollectionType) => {
     try {
       if (type === 'folder') {
-        await api.RemoveCollectionFolder(id);
+        await api.removeCollectionFolder(id);
       }
       setCollectionList(collectionList.filter((x) => x.id !== id));
     } catch (e) {
@@ -90,7 +91,7 @@ function Dashboard() {
   }: CreateCollectionParameters) => {
     try {
       if (type === 'folder') {
-        const collection = await api.CreateFolderCollection(
+        const collection = await api.createFolderCollection(
           caption,
           collectionId,
           folder

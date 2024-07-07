@@ -6,7 +6,9 @@ import {
   DialogTitle,
   Typography
 } from '@mui/material';
+
 import { RWState } from '../lib/rw-state';
+
 import styles from './delete-confirm-dialog.module.css';
 
 export interface DeleteConfirmDialogProps extends RWState<'open', boolean> {

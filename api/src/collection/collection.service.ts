@@ -1,10 +1,12 @@
 import * as Path from 'path';
+
 import { Inject, Injectable } from '@nestjs/common';
+import { eq, sql } from 'drizzle-orm';
 import { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 
-import { Collection } from './schemas/collection.schema';
 import { CreateCollectionException } from './exceptions';
-import { eq, sql } from 'drizzle-orm';
+import { Collection } from './schemas/collection.schema';
+
 import { Folder } from '@/file/schemas/folder.schema';
 import { FolderCollection } from '@/folder-collection/schemas/folder-collection.schema';
 import { PathHelper } from '@/lib/PathHelper';

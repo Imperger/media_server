@@ -1,16 +1,21 @@
+/* eslint-disable import/order */
+
 import * as path from 'path';
+
+import { DrizzleBetterSQLiteModule } from '@knaadh/nestjs-drizzle-better-sqlite3';
 import { Module } from '@nestjs/common';
+import { ServeStaticModule } from '@nestjs/serve-static';
+
+import { DbConfig } from '../drizzle.config';
+
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CollectionModule } from './collection/collection.module';
-import { DrizzleBetterSQLiteModule } from '@knaadh/nestjs-drizzle-better-sqlite3';
 import { Collection } from './collection/schemas/collection.schema';
-import { DbConfig } from '../drizzle.config';
 import { FolderCollectionModule } from './folder-collection/folder-collection.module';
 import { FileModule } from './file/file.module';
-import { MediaToolModule } from './media-tool/media-tool.module';
-import { ServeStaticModule } from '@nestjs/serve-static';
 import { LiveFeedModule } from './live-feed/live-feed.module';
+import { MediaToolModule } from './media-tool/media-tool.module';
 
 @Module({
   imports: [

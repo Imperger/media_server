@@ -1,28 +1,31 @@
 import * as path from 'path';
+
 import { Inject, Injectable } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
-import { FolderCollection } from './schemas/folder-collection.schema';
-import { PathHelper } from '@/lib/PathHelper';
+
+import { CreateCollectionDto } from './dto/create-collection.dts';
 import {
   InvalidFolderPathException,
   NonUniqueCollectionIdException,
   TooManySyncFolderException,
   UnknownFolderException
 } from './exceptions';
+import { FolderCollection } from './schemas/folder-collection.schema';
+
 import {
   CollectionService,
   CreateCollectionResult
 } from '@/collection/collection.service';
-import { Transaction } from '@/lib/Transaction';
-import { FileSyncService } from '@/file/file-sync.service';
 import { FileAccessService, FileRecord } from '@/file/file-access.service';
-import { CreateCollectionDto } from './dto/create-collection.dts';
-import { FSHelper } from '@/lib/FSHelper';
+import { FileSyncService } from '@/file/file-sync.service';
 import {
   FolderAccessService,
   FolderDescription
 } from '@/file/folder-access.service';
+import { FSHelper } from '@/lib/FSHelper';
+import { PathHelper } from '@/lib/PathHelper';
+import { Transaction } from '@/lib/Transaction';
 import { LiveFeedService } from '@/live-feed/live-feed.service';
 
 export interface FindFolderResult {

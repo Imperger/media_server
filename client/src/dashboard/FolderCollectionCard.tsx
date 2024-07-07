@@ -1,3 +1,4 @@
+import { Delete, Sync } from '@mui/icons-material';
 import {
   Box,
   Card,
@@ -7,14 +8,15 @@ import {
   LinearProgress,
   Typography
 } from '@mui/material';
-import styles from './folder-collection-card.module.css';
-import { MouseEvent, useMemo, useState } from 'react';
-import { Delete, Sync } from '@mui/icons-material';
 import { blueGrey, red } from '@mui/material/colors';
-import { DeleteConfirmDialog } from '../collection/DeleteConfirmDialog';
-import { Link } from 'react-router-dom';
 import prettyBytes from 'pretty-bytes';
+import { MouseEvent, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+
+import { DeleteConfirmDialog } from '../collection/DeleteConfirmDialog';
 import { formatDuration } from '../lib/format-duration';
+
+import styles from './folder-collection-card.module.css';
 
 export interface ViewCardParams {
   id: number;

@@ -1,15 +1,17 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
+
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import {
   FastifyAdapter,
   NestFastifyApplication
 } from '@nestjs/platform-fastify';
-import { DtoValidationPipe } from './lib/pipes/dto-validation.pipe';
+
+import { AppModule } from './app.module';
 import { AppExceptionFilter } from './lib/filters/app-exception.filter';
-import { PathHelper } from './lib/PathHelper';
 import { FSHelper } from './lib/FSHelper';
+import { PathHelper } from './lib/PathHelper';
+import { DtoValidationPipe } from './lib/pipes/dto-validation.pipe';
 
 async function setupConfigFolder() {
   if (!(await FSHelper.isDirectory(PathHelper.mediaEntry))) {

@@ -1,5 +1,3 @@
-import { useParams } from 'react-router-dom';
-import { Box, IconButton, Slider, Stack, Typography } from '@mui/material';
 import {
   Fullscreen,
   Pause,
@@ -9,6 +7,11 @@ import {
   VolumeOff,
   VolumeUp
 } from '@mui/icons-material';
+import { Box, IconButton, Slider, Stack, Typography } from '@mui/material';
+import {
+  DefaultComponentProps,
+  OverridableTypeMap
+} from '@mui/material/OverridableComponent';
 import {
   KeyboardEvent,
   MouseEvent,
@@ -20,18 +23,17 @@ import {
   useRef,
   useState
 } from 'react';
-import styles from './player.module.css';
+import { useParams } from 'react-router-dom';
+
+import { formatDuration } from '../lib/format-duration';
 import {
   Gesture,
   GesturesRecognizer,
   SwipeDirecion
 } from '../lib/gestures-recognizer';
 import { reinterpret_cast } from '../lib/reinterpret-cast';
-import { formatDuration } from '../lib/format-duration';
-import {
-  DefaultComponentProps,
-  OverridableTypeMap
-} from '@mui/material/OverridableComponent';
+
+import styles from './player.module.css';
 
 interface RewindStepProperty {
   step: number;

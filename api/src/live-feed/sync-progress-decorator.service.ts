@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { FolderSyncProgress, LiveFeedService } from './live-feed.service';
 import { Observable, Subject, throttleTime } from 'rxjs';
+
+import { FolderSyncProgress, LiveFeedService } from './live-feed.service';
 
 interface FolderSyncProgressExt extends FolderSyncProgress {
   timestamp: number;

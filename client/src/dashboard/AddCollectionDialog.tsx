@@ -12,9 +12,11 @@ import {
   TextField
 } from '@mui/material';
 import { FormEvent, useState } from 'react';
-import { RWState } from '../lib/rw-state';
-import { CreateCollectionParameters } from './type';
+
 import { CollectionType } from '../api-service/api-service';
+import { RWState } from '../lib/rw-state';
+
+import { CreateCollectionParameters } from './type';
 
 export interface AddCollectionDialogProps extends RWState<'open', boolean> {
   onApply: (collection: CreateCollectionParameters) => void;

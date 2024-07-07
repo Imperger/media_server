@@ -1,5 +1,6 @@
-import { AppException, exceptionGuardFactory } from '@/lib/exception';
 import { HttpStatus } from '@nestjs/common';
+
+import { AppException, exceptionGuardFactory } from '@/lib/exception';
 
 export class CollectionFolderException extends AppException {}
 

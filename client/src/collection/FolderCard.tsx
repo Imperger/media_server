@@ -1,3 +1,4 @@
+import { Delete, Folder, Menu as MenuIcon } from '@mui/icons-material';
 import {
   Badge,
   Card,
@@ -10,16 +11,17 @@ import {
   MenuItem,
   Typography
 } from '@mui/material';
-import { Link as RouterLink, useParams } from 'react-router-dom';
-import styles from './folder-card.module.css';
-import { Delete, Folder, Menu as MenuIcon } from '@mui/icons-material';
-import { resetLastWatched } from './store/last-watched';
-import { useAppDispatch } from '../hooks';
-import { useMemo, MouseEvent, useState } from 'react';
-import prettyBytes from 'pretty-bytes';
-import { DeleteConfirmDialog } from './DeleteConfirmDialog';
-import { useApiService } from '../api-service/api-context';
 import { useSnackbar } from 'notistack';
+import prettyBytes from 'pretty-bytes';
+import { useMemo, MouseEvent, useState } from 'react';
+import { Link as RouterLink, useParams } from 'react-router-dom';
+
+import { useApiService } from '../api-service/api-context';
+import { useAppDispatch } from '../hooks';
+
+import { DeleteConfirmDialog } from './DeleteConfirmDialog';
+import styles from './folder-card.module.css';
+import { resetLastWatched } from './store/last-watched';
 
 export interface FolderCardProps {
   name: string;

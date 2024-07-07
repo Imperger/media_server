@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Socket } from 'socket.io';
+
 import { LiveFeedEvent } from './live-feed.service';
 
 class Client {

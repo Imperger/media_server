@@ -1,4 +1,3 @@
-import { CreateCollectionDto } from '@/folder-collection/dto/create-collection.dts';
 import {
   Body,
   Controller,
@@ -9,11 +8,14 @@ import {
   Patch,
   Post
 } from '@nestjs/common';
+
+import { UnknownFolderException } from './exceptions';
 import {
   FolderCollectionService,
   FolderContentRecord
 } from './folder-collection.service';
-import { UnknownFolderException } from './exceptions';
+
+import { CreateCollectionDto } from '@/folder-collection/dto/create-collection.dts';
 
 interface MetainfoResult {
   collectionId: string;

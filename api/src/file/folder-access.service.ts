@@ -1,17 +1,20 @@
-import * as Path from 'path';
 import * as Fs from 'fs/promises';
+import * as Path from 'path';
+
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
+import { eq, min, sql } from 'drizzle-orm';
 import { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
+
+import { FileAccessService } from './file-access.service';
+import { File } from './schemas/file.schema';
 import { Folder } from './schemas/folder.schema';
+
+import { UnknownFolderException } from '@/folder-collection/exceptions';
+import { FolderCollectionService } from '@/folder-collection/folder-collection.service';
+import { assetHash } from '@/lib/asset-hash';
+import { increment } from '@/lib/drizzle/increase';
 import { PathHelper } from '@/lib/PathHelper';
 import { AtLeastOne } from '@/lib/type-helper';
-import { increment } from '@/lib/drizzle/increase';
-import { eq, min, sql } from 'drizzle-orm';
-import { File } from './schemas/file.schema';
-import { assetHash } from '@/lib/asset-hash';
-import { FileAccessService } from './file-access.service';
-import { FolderCollectionService } from '@/folder-collection/folder-collection.service';
-import { UnknownFolderException } from '@/folder-collection/exceptions';
 
 export interface IncreaseStats {
   size?: number;

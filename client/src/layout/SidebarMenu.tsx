@@ -1,3 +1,4 @@
+import { Dashboard, Login, Settings } from '@mui/icons-material';
 import {
   Drawer,
   ListItem,
@@ -5,9 +6,10 @@ import {
   ListItemIcon,
   ListItemText
 } from '@mui/material';
-import { RWState } from '../lib/rw-state';
-import { Dashboard, Login, Settings } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
+
+import { RWState } from '../lib/rw-state';
+
 import styles from './sidebar-menu.module.css';
 
 function SidebarMenu({ open, setOpen }: RWState<'open', boolean>) {

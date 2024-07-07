@@ -1,5 +1,5 @@
-import * as mime from 'mime';
 import * as Path from 'path';
+
 import {
   Controller,
   Delete,
@@ -11,11 +11,14 @@ import {
   StreamableFile,
   UseGuards
 } from '@nestjs/common';
-import { FileAccessService } from './file-access.service';
-import { PathHelper } from '@/lib/PathHelper';
-import { CacheControlGuard } from './guards/cache-control.guard';
-import { FolderAccessService } from './folder-access.service';
 import { FastifyReply } from 'fastify';
+import * as mime from 'mime';
+
+import { FileAccessService } from './file-access.service';
+import { FolderAccessService } from './folder-access.service';
+import { CacheControlGuard } from './guards/cache-control.guard';
+
+import { PathHelper } from '@/lib/PathHelper';
 
 @Controller('folder')
 export class FolderController {

@@ -1,6 +1,8 @@
+import * as crypto from 'crypto';
+import { Stats } from 'fs';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import * as crypto from 'crypto';
+
 import {
   CanActivate,
   ExecutionContext,
@@ -8,7 +10,6 @@ import {
   Injectable
 } from '@nestjs/common';
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { Stats } from 'fs';
 
 export interface CacheControlGuardOptions {
   assetEntry: string;

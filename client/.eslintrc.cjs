@@ -4,6 +4,8 @@ module.exports = {
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
+    'plugin:import/recommended',
+    'plugin:import/typescript',
     'plugin:react-hooks/recommended',
     'plugin:prettier/recommended'
   ],
@@ -19,5 +21,26 @@ module.exports = {
       "warn",
       { "argsIgnorePattern": "^_" }
     ],
+    "import/no-unresolved": "error",
+    "import/order": [
+      "error", 
+      {
+        "newlines-between": "always",
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        }
+      }
+    ]
   },
+  "settings": {
+    "import/parsers": {
+      "@typescript-eslint/parser": [".ts", ".tsx"]
+    },
+    "import/resolver": {
+      "typescript": {
+        "alwaysTryTypes": true
+      }
+    }
+  }
 }

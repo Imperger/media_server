@@ -1,3 +1,4 @@
+import { Delete, Info, Menu as MenuIcon, PlayArrow } from '@mui/icons-material';
 import {
   Card,
   CardMedia,
@@ -9,16 +10,17 @@ import {
   MenuItem,
   Typography
 } from '@mui/material';
-import styles from './file-card.module.css';
-import { MouseEvent, SyntheticEvent, useMemo, useState } from 'react';
-import { Delete, Info, Menu as MenuIcon, PlayArrow } from '@mui/icons-material';
-import { formatDuration } from '../lib/format-duration';
-import FileInfoDialog from './FileInfoDialog';
-import { Link as RouterLink } from 'react-router-dom';
-import { useApiService } from '../api-service/api-context';
 import { useSnackbar } from 'notistack';
-import { DeleteConfirmDialog } from './DeleteConfirmDialog';
+import { MouseEvent, SyntheticEvent, useMemo, useState } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
+
+import { useApiService } from '../api-service/api-context';
 import { useAppDispatch } from '../hooks';
+import { formatDuration } from '../lib/format-duration';
+
+import { DeleteConfirmDialog } from './DeleteConfirmDialog';
+import styles from './file-card.module.css';
+import FileInfoDialog from './FileInfoDialog';
 import { updateLastWatched } from './store/last-watched';
 
 export interface FileCardProps {

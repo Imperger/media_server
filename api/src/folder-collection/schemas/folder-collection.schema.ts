@@ -1,6 +1,7 @@
-import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
-import { Collection } from '@/collection/schemas/collection.schema';
 import { sql } from 'drizzle-orm';
+import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+
+import { Collection } from '@/collection/schemas/collection.schema';
 
 export const FolderCollection = sqliteTable('folder_collection', {
   id: integer('id')

@@ -1,12 +1,15 @@
 import * as path from 'path';
-import { FSHelper } from '@/lib/FSHelper';
+
 import { Inject, Injectable } from '@nestjs/common';
-import { File } from './schemas/file.schema';
-import { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 import { count, eq, sql } from 'drizzle-orm';
+import { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
+
 import { FileAccessService } from './file-access.service';
-import { PathHelper } from '@/lib/PathHelper';
 import { FolderAccessService } from './folder-access.service';
+import { File } from './schemas/file.schema';
+
+import { FSHelper } from '@/lib/FSHelper';
+import { PathHelper } from '@/lib/PathHelper';
 import { SyncProgressDecoratorService } from '@/live-feed/sync-progress-decorator.service';
 
 interface FolderInitState {

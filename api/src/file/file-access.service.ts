@@ -1,17 +1,20 @@
-import * as Path from 'path';
-import * as Fs from 'fs/promises';
-import { Inject, Injectable, forwardRef } from '@nestjs/common';
-import { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
-import { File } from './schemas/file.schema';
-import { PathHelper } from '@/lib/PathHelper';
-import { eq, sql } from 'drizzle-orm';
-import { MediaToolService } from '@/media-tool/media-tool.service';
 import { ReadStream, createReadStream } from 'fs';
-import { FSHelper } from '@/lib/FSHelper';
-import { assetHash } from '@/lib/asset-hash';
+import * as Fs from 'fs/promises';
+import * as Path from 'path';
+
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
+import { eq, sql } from 'drizzle-orm';
+import { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
+
 import { FileNotFoundException, PreviewNotFoundException } from './exceptions';
-import { FolderCollectionService } from '@/folder-collection/folder-collection.service';
 import { FolderAccessService } from './folder-access.service';
+import { File } from './schemas/file.schema';
+
+import { FolderCollectionService } from '@/folder-collection/folder-collection.service';
+import { assetHash } from '@/lib/asset-hash';
+import { FSHelper } from '@/lib/FSHelper';
+import { PathHelper } from '@/lib/PathHelper';
+import { MediaToolService } from '@/media-tool/media-tool.service';
 
 export interface FileRecord {
   filename: string;

@@ -1,17 +1,19 @@
+import { Breadcrumbs, Stack, Typography, useMediaQuery } from '@mui/material';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useBlocker, useParams } from 'react-router-dom';
+
 import { useApiService } from '../api-service/api-context';
-import { Breadcrumbs, Stack, Typography, useMediaQuery } from '@mui/material';
 import {
   FolderContentRecord,
   FolderMetainfo
 } from '../api-service/api-service';
-import FileCard from './FileCard';
-import FolderCard from './FolderCard';
+import { useAppDispatch, useAppSelector } from '../hooks';
 import { useTitle } from '../layout/TitleContext';
 import { ArrayHelper } from '../lib/ArrayHelper';
+
+import FileCard from './FileCard';
 import styles from './folder-collection.module.css';
-import { useAppDispatch, useAppSelector } from '../hooks';
+import FolderCard from './FolderCard';
 import { updateLastWatched } from './store/last-watched';
 
 interface BreadcrumbItem {

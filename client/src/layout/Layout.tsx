@@ -1,18 +1,19 @@
-import { useMemo, useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Circle } from '@mui/icons-material';
+import MenuIcon from '@mui/icons-material/Menu';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
+import { lightGreen, red } from '@mui/material/colors';
+import IconButton from '@mui/material/IconButton';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
-import MenuIcon from '@mui/icons-material/Menu';
-
-import { TitleContext } from './TitleContext';
-import SidebarMenu from './SidebarMenu';
 import { SnackbarProvider } from 'notistack';
+import { useMemo, useState } from 'react';
+import { Outlet } from 'react-router-dom';
+
 import { useOnline } from '../api-service/useOnline';
-import { Circle } from '@mui/icons-material';
-import { lightGreen, red } from '@mui/material/colors';
+
+import SidebarMenu from './SidebarMenu';
+import { TitleContext } from './TitleContext';
 
 function Layout() {
   const [title, setTitle] = useState('');

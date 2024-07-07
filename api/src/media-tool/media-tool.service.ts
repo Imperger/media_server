@@ -1,8 +1,11 @@
 import * as path from 'path';
-import { PathHelper } from '@/lib/PathHelper';
-import { Ffmpeg } from '@/lib/ffmpeg/ffmpeg';
+
 import { Injectable } from '@nestjs/common';
+
 import { MissingVideoStreamException } from './exceptions';
+
+import { Ffmpeg } from '@/lib/ffmpeg/ffmpeg';
+import { PathHelper } from '@/lib/PathHelper';
 
 export interface VideoMetainfo {
   width: number;

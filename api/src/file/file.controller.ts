@@ -1,8 +1,5 @@
 import * as Path from 'path';
-import type { FastifyReply } from 'fastify';
-import * as rangeParser from 'range-parser';
-import * as mime from 'mime-types';
-import { PathHelper } from '@/lib/PathHelper';
+
 import {
   BadRequestException,
   Controller,
@@ -16,10 +13,16 @@ import {
   StreamableFile,
   UseGuards
 } from '@nestjs/common';
-import { FileAccessService, RangeOptions } from './file-access.service';
+import type { FastifyReply } from 'fastify';
+import * as mime from 'mime-types';
+import * as rangeParser from 'range-parser';
+
 import { FileContentNotFoundException } from './exceptions';
-import { CacheControlGuard } from './guards/cache-control.guard';
+import { FileAccessService, RangeOptions } from './file-access.service';
 import { FolderAccessService } from './folder-access.service';
+import { CacheControlGuard } from './guards/cache-control.guard';
+
+import { PathHelper } from '@/lib/PathHelper';
 
 @Controller('file')
 export class FileController {
