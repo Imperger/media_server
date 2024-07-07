@@ -1,5 +1,3 @@
-/* eslint-disable import/order */
-
 import * as path from 'path';
 
 import { DrizzleBetterSQLiteModule } from '@knaadh/nestjs-drizzle-better-sqlite3';
@@ -12,8 +10,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CollectionModule } from './collection/collection.module';
 import { Collection } from './collection/schemas/collection.schema';
-import { FolderCollectionModule } from './folder-collection/folder-collection.module';
 import { FileModule } from './file/file.module';
+import { FolderCollectionModule } from './folder-collection/folder-collection.module';
 import { LiveFeedModule } from './live-feed/live-feed.module';
 import { MediaToolModule } from './media-tool/media-tool.module';
 

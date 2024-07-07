@@ -1,6 +1,6 @@
 import * as path from 'path';
 
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 
@@ -56,7 +56,9 @@ export class FolderCollectionService {
     }>,
     private readonly collectionService: CollectionService,
     private readonly fileSyncService: FileSyncService,
+    @Inject(forwardRef(() => FileAccessService))
     private readonly fileAccessService: FileAccessService,
+    @Inject(forwardRef(() => FolderAccessService))
     private readonly folderAccess: FolderAccessService,
     private readonly liveFeed: LiveFeedService
   ) {}
