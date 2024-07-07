@@ -19,17 +19,13 @@ import * as rangeParser from 'range-parser';
 
 import { FileContentNotFoundException } from './exceptions';
 import { FileAccessService, RangeOptions } from './file-access.service';
-import { FolderAccessService } from './folder-access.service';
 import { CacheControlGuard } from './guards/cache-control.guard';
 
 import { PathHelper } from '@/lib/PathHelper';
 
 @Controller('file')
 export class FileController {
-  constructor(
-    private readonly fileAccessService: FileAccessService,
-    private readonly folderAccess: FolderAccessService
-  ) {}
+  constructor(private readonly fileAccessService: FileAccessService) {}
 
   @Get('content/:collectionId/*')
   @Header('Accept-Ranges', 'bytes')
