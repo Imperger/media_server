@@ -1,0 +1,20 @@
+{
+	"compilerOptions": {
+		"allowJs": false,
+		"allowSyntheticDefaultImports": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"isolatedModules": true,
+		"module": "ESNext",
+		"moduleResolution": "Node",
+		"noEmit": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"strict": true,
+		"target": "ESNext",
+        "lib": ["ESNext"],
+		"types": ["vite-plugin-pwa/client"],
+		"useDefineForClassFields": true
+	},
+    "include": ["./"]
+}
