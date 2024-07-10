@@ -35,12 +35,25 @@ async function setupConfigFolder() {
   }
 }
 
+async function FastifyFactory(): Promise<FastifyAdapter> {
+  const key = path.join(PathHelper.mediaEntry, 'server.key');
+  const cert = path.join(PathHelper.mediaEntry, 'server.cer');
+
+  if ((await FSHelper.exists(key)) && (await FSHelper.exists(cert))) {
+    return new FastifyAdapter({
+      https: { key: await fs.readFile(key), cert: await fs.readFile(cert) }
+    });
+  } else {
+    return new FastifyAdapter();
+  }
+}
+
 async function bootstrap() {
   await setupConfigFolder();
 
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter()
+    await FastifyFactory()
   );
 
   process.once('SIGTERM', () => app.close());

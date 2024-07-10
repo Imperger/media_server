@@ -1,4 +1,11 @@
-import { Delete, Info, Menu as MenuIcon, PlayArrow } from '@mui/icons-material';
+import {
+  Delete,
+  Info,
+  Menu as MenuIcon,
+  PlayArrow,
+  CloudDownload as CloudDownloadIcon,
+  CloudDownloadOutlined as CloudDownloadOutlinedIcon
+} from '@mui/icons-material';
 import {
   Card,
   CardMedia,
@@ -11,11 +18,18 @@ import {
   Typography
 } from '@mui/material';
 import { useSnackbar } from 'notistack';
-import { MouseEvent, SyntheticEvent, useMemo, useState } from 'react';
+import {
+  MouseEvent,
+  SyntheticEvent,
+  useEffect,
+  useMemo,
+  useState
+} from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 
 import { useApiService } from '../api-service/api-context';
 import { useAppDispatch } from '../hooks';
+import { ContentCache } from '../lib/content-cache';
 import { formatDuration } from '../lib/format-duration';
 
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
@@ -32,6 +46,68 @@ export interface FileCardProps {
   preview: string;
   createdAt: number;
   onDelete: (filename: string) => void;
+}
+
+interface DownloadMenuProps {
+  filename: string;
+  preview: string;
+  onClose: (e: MouseEvent<HTMLElement>) => void;
+}
+
+function DownloadMenyItem({ filename, preview, onClose }: DownloadMenuProps) {
+  const baseURL = import.meta.env.BASE_URL;
+
+  const videoUrl = useMemo(
+    () => `${baseURL}api/file/content/${filename}`,
+    [filename]
+  );
+
+  const [isCached, setIsCached] = useState(false);
+
+  const downloadMedia = async (e: MouseEvent<HTMLElement>) => {
+    onClose(e);
+
+    try {
+      await ContentCache.cacheFile(videoUrl, (x) => console.log(x));
+      await ContentCache.cacheFile(preview, (x) => console.log(x));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const evictMedia = async (e: MouseEvent<HTMLElement>) => {
+    try {
+      await ContentCache.evictFile(videoUrl);
+      await ContentCache.evictFile(preview);
+    } catch (e) {
+      console.error(e);
+    }
+
+    onClose(e);
+  };
+
+  useEffect(() => {
+    const fetchCachingState = async () =>
+      setIsCached(await ContentCache.isCached(videoUrl));
+
+    fetchCachingState();
+  }, []);
+
+  return isCached ? (
+    <MenuItem onClick={evictMedia}>
+      <ListItemIcon>
+        <CloudDownloadOutlinedIcon />
+      </ListItemIcon>
+      <ListItemText>Erase</ListItemText>
+    </MenuItem>
+  ) : (
+    <MenuItem onClick={downloadMedia}>
+      <ListItemIcon>
+        <CloudDownloadIcon />
+      </ListItemIcon>
+      <ListItemText>Save</ListItemText>
+    </MenuItem>
+  );
 }
 
 function FileCard(props: FileCardProps) {
@@ -154,6 +230,11 @@ function FileCard(props: FileCardProps) {
           'aria-labelledby': 'basic-button'
         }}
       >
+        <DownloadMenyItem
+          filename={props.filename}
+          preview={props.preview}
+          onClose={closeMenu}
+        />
         <MenuItem onClick={openDeleteConfirmDialog}>
           <ListItemIcon>
             <Delete />

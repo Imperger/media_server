@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import { useSnackbar } from 'notistack';
 import prettyBytes from 'pretty-bytes';
-import { useMemo, MouseEvent, useState } from 'react';
+import { useMemo, MouseEvent, useState, SyntheticEvent } from 'react';
 import { Link as RouterLink, useParams } from 'react-router-dom';
 
 import { useApiService } from '../api-service/api-context';
@@ -32,6 +32,7 @@ export interface FolderCardProps {
 }
 
 function FolderCard({ name, size, files, onDelete, preview }: FolderCardProps) {
+  const baseURL = import.meta.env.BASE_URL;
   const api = useApiService();
   const { id, '*': path } = useParams();
   const { enqueueSnackbar } = useSnackbar();
@@ -78,6 +79,15 @@ function FolderCard({ name, size, files, onDelete, preview }: FolderCardProps) {
     closeMenu(e);
   };
 
+  const fallbackToDefaultCover = (
+    e?: SyntheticEvent<HTMLImageElement, Event>
+  ) => {
+    if (e !== undefined) {
+      e.currentTarget.onerror = null;
+      e.currentTarget.src = `${baseURL}img/folder_cover.jpg`;
+    }
+  };
+
   return (
     <>
       <Link
@@ -87,7 +97,12 @@ function FolderCard({ name, size, files, onDelete, preview }: FolderCardProps) {
         onClick={saveLastWacthed}
       >
         <Card className={styles.container} style={{ margin: '2px' }}>
-          <CardMedia component="img" height="140" image={preview}></CardMedia>
+          <CardMedia
+            component="img"
+            height="140"
+            image={preview}
+            onError={fallbackToDefaultCover}
+          ></CardMedia>
           <Badge
             sx={{ position: 'absolute' }}
             className={styles.folder}

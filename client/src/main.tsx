@@ -18,6 +18,39 @@ import { Theme } from './theme';
 function Root() {
   const api = new ApiService('/api');
 
+  React.useEffect(() => {
+    const listener = (event: MessageEvent) => {
+      switch (event.data.type) {
+        case 'getOnlineStatus':
+          event.source?.postMessage({
+            type: 'updateOnlineStatus',
+            isOnline: api.liveFeed.isOnline
+          });
+          break;
+      }
+    };
+
+    const unsub = api.liveFeed.onOnline(async (isOnline) => {
+      const registration = await navigator.serviceWorker.getRegistration();
+
+      if (registration === undefined) {
+        return;
+      }
+
+      registration?.active?.postMessage({
+        type: 'updateOnlineStatus',
+        isOnline
+      });
+    });
+
+    navigator.serviceWorker.addEventListener('message', listener);
+
+    return () => {
+      navigator.serviceWorker.removeEventListener('message', listener);
+      unsub();
+    };
+  }, []);
+
   return (
     <React.StrictMode>
       <Provider store={store}>

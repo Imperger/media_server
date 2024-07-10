@@ -57,6 +57,8 @@ export class FileController {
         this.contentRange(start, end, fileRecord.size)
       );
       res.status(206);
+    } else {
+      res.header('Content-Length', fileRecord.size);
     }
 
     return new StreamableFile(
