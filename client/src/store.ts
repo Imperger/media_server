@@ -1,4 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
+
 import lastWatchedReducer from './collection/store/last-watched';
 
 export const store = configureStore({
