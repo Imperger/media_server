@@ -1,3 +1,4 @@
+import * as Fs from 'fs/promises';
 import * as Path from 'path';
 
 import {
@@ -32,17 +33,15 @@ export class FolderController {
   @UseGuards(
     CacheControlGuard({ maxAge: 300, assetEntry: PathHelper.previewEntry })
   )
-  async preview(
-    @Param('filename') filename: string,
-    @Res({ passthrough: true }) res: FastifyReply
-  ) {
-    this.setupContentType(filename, res);
+  async preview(@Param('filename') filename: string) {
+    const target = Path.join(PathHelper.previewEntry, filename);
+    const stream = await this.fileAccessService.createContentStream(target);
+    const stat = await Fs.stat(target);
 
-    return new StreamableFile(
-      await this.fileAccessService.createContentStream(
-        Path.join(PathHelper.previewEntry, filename)
-      )
-    );
+    return new StreamableFile(stream, {
+      type: this.contentType(filename),
+      length: stat.size
+    });
   }
 
   @Delete(':collectionId/*')
@@ -53,8 +52,7 @@ export class FolderController {
     await this.folderAccess.remove(collectionId, path);
   }
 
-  private setupContentType(filename: string, response: FastifyReply): void {
-    const mimeType = mime.lookup(filename) || 'application/octet-stream';
-    response.header('Content-Type', mimeType);
+  private contentType(filename: string): string {
+    return mime.lookup(filename) || 'application/octet-stream';
   }
 }

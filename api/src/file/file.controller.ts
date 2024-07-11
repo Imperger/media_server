@@ -1,3 +1,4 @@
+import * as Fs from 'fs/promises';
 import * as Path from 'path';
 
 import {
@@ -45,8 +46,6 @@ export class FileController {
       throw new FileContentNotFoundException();
     }
 
-    this.setupContentType(filename, res);
-
     let streamOptions: RangeOptions | undefined;
     if (range) {
       const { start, end } = this.parseRange(range, fileRecord.size);
@@ -65,7 +64,8 @@ export class FileController {
       await this.fileAccessService.createContentStream(
         Path.join(PathHelper.mediaEntry, filename),
         streamOptions
-      )
+      ),
+      { type: this.contentType(filename) }
     );
   }
 
@@ -74,17 +74,15 @@ export class FileController {
     CacheControlGuard({ maxAge: 300, assetEntry: PathHelper.previewEntry })
   )
   @Header('Connection', 'keep-alive')
-  async preview(
-    @Param('filename') filename: string,
-    @Res({ passthrough: true }) res: FastifyReply
-  ) {
-    this.setupContentType(filename, res);
+  async preview(@Param('filename') filename: string) {
+    const target = Path.join(PathHelper.previewEntry, filename);
+    const stream = await this.fileAccessService.createContentStream(target);
+    const stat = await Fs.stat(target);
 
-    return new StreamableFile(
-      await this.fileAccessService.createContentStream(
-        Path.join(PathHelper.previewEntry, filename)
-      )
-    );
+    return new StreamableFile(stream, {
+      type: this.contentType(filename),
+      length: stat.size
+    });
   }
 
   @Delete(':collectionId/*')
@@ -107,8 +105,7 @@ export class FileController {
     return parseResult[0];
   }
 
-  private setupContentType(filename: string, response: FastifyReply): void {
-    const mimeType = mime.lookup(filename) || 'application/octet-stream';
-    response.header('Content-Type', mimeType);
+  private contentType(filename: string): string {
+    return mime.lookup(filename) || 'application/octet-stream';
   }
 }
