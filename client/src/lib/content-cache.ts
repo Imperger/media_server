@@ -14,6 +14,12 @@ export class ContentCache {
     const cacheableResponse = response.clone();
     const contentLength = +response.headers.get('Content-Length')!;
 
+    if (contentLength === 0) {
+      console.warn(
+        `Download progress listener for request '${url}' will not be called because of missing 'Content-Length' header`
+      );
+    }
+
     let receivedLength = 0;
     const reader = response.body!.getReader();
 
@@ -27,7 +33,9 @@ export class ContentCache {
 
       receivedLength += value.length;
 
-      listener(receivedLength / contentLength);
+      if (contentLength !== 0) {
+        listener(receivedLength / contentLength);
+      }
     }
 
     const cache = await caches.open(ContentCache.cacheName);
