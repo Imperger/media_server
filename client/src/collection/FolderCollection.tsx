@@ -7,9 +7,12 @@ import {
   FolderContentRecord,
   FolderMetainfo
 } from '../api-service/api-service';
+import { useOnline } from '../api-service/useOnline';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { useTitle } from '../layout/TitleContext';
 import { ArrayHelper } from '../lib/ArrayHelper';
+import { ContentCache } from '../lib/content-cache';
+import { IterableHelper } from '../lib/iterable-helper';
 
 import FileCard from './FileCard';
 import styles from './folder-collection.module.css';
@@ -37,12 +40,14 @@ function FolderCollection() {
   const dispatch = useAppDispatch();
   const { setTitle } = useTitle();
   const fileListRef = useRef<HTMLDivElement | null>(null);
+  const isOnline = useOnline();
   const [content, setContent] = useState<FolderContentRecord[]>([]);
   const [metainfo, setMetainfo] = useState<FolderMetainfo>({
     collectionId: 'unknown',
     folder: 'unknown',
     syncedAt: 0
   });
+  const [cachedFiles, setCachedFiles] = useState<string[]>([]);
   const lastWatched = useAppSelector((state) => state.lastWatched.filename);
 
   const isPortrait = useMediaQuery('(orientation: portrait)');
@@ -78,7 +83,7 @@ function FolderCollection() {
     }
   };
 
-  useEffect(() => setTitle('Folder collection'));
+  useEffect(() => setTitle('Folder collection'), []);
 
   useEffect(() => {
     const fetchFolderContent = async () => {
@@ -134,6 +139,21 @@ function FolderCollection() {
       )
     );
 
+  const onCache = async (filename: string, action: 'cache' | 'evict') => {
+    switch (action) {
+      case 'cache':
+        setCachedFiles([...cachedFiles, filename]);
+        break;
+      case 'evict':
+        setCachedFiles(
+          ArrayHelper.filterFirst(cachedFiles, (x) => x !== filename)
+        );
+        break;
+    }
+
+    console.log(filename, action);
+  };
+
   const onDeleteFolder = (name: string) =>
     setContent(
       ArrayHelper.filterFirst(
@@ -142,6 +162,9 @@ function FolderCollection() {
       )
     );
 
+  const isAvailable = (filename: string) =>
+    isOnline || cachedFiles.includes(filename);
+
   useEffect(() => {
     const fetchFolderInfo = async () => {
       setMetainfo(await api.folderInfo(Number.parseInt(id!)));
@@ -149,6 +172,26 @@ function FolderCollection() {
 
     fetchFolderInfo();
   }, [id]);
+
+  useEffect(() => {
+    const pathDepth = (path: string) =>
+      IterableHelper.countIf(path, (x) => x === '/');
+
+    const fetchCachedFiles = async () => {
+      setCachedFiles(
+        await ContentCache.filterContent((filename) => {
+          const prefix = path === '' ? `${id}/` : `${id}/${path}/`;
+          const prefixDepth = pathDepth(prefix);
+
+          return (
+            filename.startsWith(prefix) && pathDepth(filename) === prefixDepth
+          );
+        })
+      );
+    };
+
+    fetchCachedFiles();
+  }, [id, path]);
 
   return (
     <>
@@ -185,6 +228,8 @@ function FolderCollection() {
                   preview={`${baseURL}api/file/preview/${x.assetPrefix}.jpg`}
                   createdAt={x.createdAt}
                   onDelete={onDeleteFile}
+                  onCache={onCache}
+                  isAvailable={isAvailable(x.filename)}
                 />
               );
             case 'folder':

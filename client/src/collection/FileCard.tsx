@@ -45,44 +45,33 @@ export interface FileCardProps {
   height: number;
   preview: string;
   createdAt: number;
+  isAvailable: boolean;
   onDelete: (filename: string) => void;
+  onCache: (filename: string, action: 'cache' | 'evict') => void;
 }
 
 interface DownloadMenuProps {
   filename: string;
-  preview: string;
   onClose: (e: MouseEvent<HTMLElement>) => void;
+  onCache: (filename: string, action: 'cache' | 'evict') => void;
 }
 
-function DownloadMenyItem({ filename, preview, onClose }: DownloadMenuProps) {
+function DownloadMenyItem({ filename, onClose, onCache }: DownloadMenuProps) {
   const baseURL = import.meta.env.BASE_URL;
 
   const videoUrl = useMemo(
     () => `${baseURL}api/file/content/${filename}`,
     [filename]
   );
-
   const [isCached, setIsCached] = useState(false);
 
   const downloadMedia = async (e: MouseEvent<HTMLElement>) => {
+    onCache(filename, 'cache');
     onClose(e);
-
-    try {
-      await ContentCache.cacheFile(videoUrl, (x) => console.log(x));
-      await ContentCache.cacheFile(preview, (x) => console.log(x));
-    } catch (e) {
-      console.error(e);
-    }
   };
 
   const evictMedia = async (e: MouseEvent<HTMLElement>) => {
-    try {
-      await ContentCache.evictFile(videoUrl);
-      await ContentCache.evictFile(preview);
-    } catch (e) {
-      console.error(e);
-    }
-
+    onCache(filename, 'evict');
     onClose(e);
   };
 
@@ -127,6 +116,41 @@ function FileCard(props: FileCardProps) {
     setMenuAnchor(e.currentTarget);
   };
 
+  const videoUrl = useMemo(
+    () => `${baseURL}api/file/content/${props.filename}`,
+    [props.filename]
+  );
+
+  const onCache = async (filename: string, action: 'cache' | 'evict') => {
+    switch (action) {
+      case 'cache':
+        {
+          try {
+            await ContentCache.cacheFile(videoUrl, (x) => 0);
+            await ContentCache.cacheFile(props.preview, (x) => 0);
+
+            props.onCache(filename, 'cache');
+          } catch (e) {
+            console.error(e);
+          }
+        }
+        break;
+
+      case 'evict':
+        {
+          try {
+            await ContentCache.evictFile(videoUrl);
+            await ContentCache.evictFile(props.preview);
+
+            props.onCache(filename, 'evict');
+          } catch (e) {
+            console.error(e);
+          }
+        }
+        break;
+    }
+  };
+
   const closeMenu = (e: MouseEvent<HTMLElement>) => {
     e.preventDefault();
 
@@ -167,6 +191,7 @@ function FileCard(props: FileCardProps) {
   );
 
   const saveLastWacthed = () => dispatch(updateLastWatched(name));
+  const blockNavigation = (e: MouseEvent<HTMLElement>) => e.preventDefault();
 
   const fallbackToDefaultCover = (
     e?: SyntheticEvent<HTMLImageElement, Event>
@@ -177,16 +202,22 @@ function FileCard(props: FileCardProps) {
     }
   };
 
+  const previewClassName = useMemo(
+    () => (props.isAvailable ? '' : styles.unavailable),
+    [props.isAvailable]
+  );
+
   return (
     <>
       <Link
         data-index={name}
         component={RouterLink}
         to={`${baseURL}play/${props.filename}`}
-        onClick={saveLastWacthed}
+        onClick={props.isAvailable ? saveLastWacthed : blockNavigation}
       >
         <Card className={styles.container} style={{ margin: '2px' }}>
           <CardMedia
+            className={previewClassName}
             component="img"
             height="140"
             image={props.preview}
@@ -232,7 +263,7 @@ function FileCard(props: FileCardProps) {
       >
         <DownloadMenyItem
           filename={props.filename}
-          preview={props.preview}
+          onCache={onCache}
           onClose={closeMenu}
         />
         <MenuItem onClick={openDeleteConfirmDialog}>

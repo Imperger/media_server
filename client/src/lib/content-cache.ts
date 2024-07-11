@@ -6,6 +6,7 @@ export class ContentCache {
   static get cacheName(): string {
     return `${CachePrefix}-${CacheRuntime}-${CacheSuffix}`;
   }
+
   static async cacheFile(
     url: string,
     listener: DownloadProgressListener
@@ -53,5 +54,38 @@ export class ContentCache {
     const cache = await caches.open(ContentCache.cacheName);
 
     return (await cache.match(url)) !== undefined;
+  }
+
+  static async filterContent(
+    pred: (filename: string) => boolean
+  ): Promise<string[]> {
+    const cache = await caches.open(ContentCache.cacheName);
+    const keys = await cache.keys();
+
+    return keys
+      .map((x) => ContentCache.castToPathname(x))
+      .filter((x) => ContentCache.isContentKey(x))
+      .map((x) => ContentCache.contentPath(x))
+      .filter((x) => pred(x));
+  }
+
+  private static castToPathname(req: Request): string {
+    return new URL(req.url).pathname;
+  }
+
+  private static isContentKey(key: string): boolean {
+    return key.startsWith('/api/file/content/');
+  }
+
+  private static contentPath(key: string): string {
+    const pathnamePrefixLength = '/api/file/content/'.length;
+
+    return key.slice(pathnamePrefixLength);
+  }
+
+  private static isPreviewKey(key: string): boolean {
+    const previewPrefixes = ['/api/file/preview/', '/api/folder/preview/'];
+
+    return previewPrefixes.some((x) => key.startsWith(x));
   }
 }

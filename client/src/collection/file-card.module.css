@@ -2,6 +2,10 @@
     position: relative;
 }
 
+.unavailable {
+    filter: grayscale(1);
+}
+
 .playIcon {
     position: absolute;
     left: 50%;
