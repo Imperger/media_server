@@ -162,8 +162,9 @@ function FolderCollection() {
       )
     );
 
-  const isAvailable = (filename: string) =>
-    isOnline || cachedFiles.includes(filename);
+  const isCached = (filename: string) => cachedFiles.includes(filename);
+
+  const isAvailable = (filename: string) => isOnline || isCached(filename);
 
   useEffect(() => {
     const fetchFolderInfo = async () => {
@@ -230,6 +231,7 @@ function FolderCollection() {
                   onDelete={onDeleteFile}
                   onCache={onCache}
                   isAvailable={isAvailable(x.filename)}
+                  isCached={isCached(x.filename)}
                 />
               );
             case 'folder':

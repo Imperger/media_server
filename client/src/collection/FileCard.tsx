@@ -46,6 +46,7 @@ export interface FileCardProps {
   preview: string;
   createdAt: number;
   isAvailable: boolean;
+  isCached: boolean;
   onDelete: (filename: string) => void;
   onCache: (filename: string, action: 'cache' | 'evict') => void;
 }
@@ -207,6 +208,11 @@ function FileCard(props: FileCardProps) {
     [props.isAvailable]
   );
 
+  const titleClassName = useMemo(
+    () => `${styles.title} ${props.isCached ? styles.titleCached : ''}`,
+    [props.isCached]
+  );
+
   return (
     <>
       <Link
@@ -228,7 +234,7 @@ function FileCard(props: FileCardProps) {
             className={styles.playIcon}
           ></PlayArrow>
           <Typography
-            className={styles.title}
+            className={titleClassName}
             gutterBottom
             variant="h5"
             component="div"
