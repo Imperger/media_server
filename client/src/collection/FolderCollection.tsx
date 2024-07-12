@@ -1,6 +1,6 @@
-import { Breadcrumbs, Stack, Typography, useMediaQuery } from '@mui/material';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useBlocker, useParams } from 'react-router-dom';
+import { Breadcrumbs, Typography } from '@mui/material';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
 
 import { useApiService } from '../api-service/api-context';
 import {
@@ -8,38 +8,25 @@ import {
   FolderMetainfo
 } from '../api-service/api-service';
 import { useOnline } from '../api-service/useOnline';
-import { useAppDispatch, useAppSelector } from '../hooks';
 import { useTitle } from '../layout/TitleContext';
 import { ArrayHelper } from '../lib/ArrayHelper';
+import ContentList from '../lib/components/content-list/ContentList';
 import { ContentCache } from '../lib/content-cache';
 import { IterableHelper } from '../lib/iterable-helper';
 
 import FileCard from './FileCard';
-import styles from './folder-collection.module.css';
 import FolderCard from './FolderCard';
-import { updateLastWatched } from './store/last-watched';
 
 interface BreadcrumbItem {
   caption: string;
   path: string;
 }
 
-function nearestFolder(from: string, to: string): string {
-  if (from.startsWith(to)) {
-    const diff = from.slice(to.length + 1);
-    return diff.split('/')[0];
-  } else {
-    return '';
-  }
-}
-
 function FolderCollection() {
   const baseURL = import.meta.env.BASE_URL;
   const { id, '*': path } = useParams();
   const api = useApiService();
-  const dispatch = useAppDispatch();
   const { setTitle } = useTitle();
-  const fileListRef = useRef<HTMLDivElement | null>(null);
   const isOnline = useOnline();
   const [content, setContent] = useState<FolderContentRecord[]>([]);
   const [metainfo, setMetainfo] = useState<FolderMetainfo>({
@@ -48,9 +35,6 @@ function FolderCollection() {
     syncedAt: 0
   });
   const [cachedFiles, setCachedFiles] = useState<string[]>([]);
-  const lastWatched = useAppSelector((state) => state.lastWatched.filename);
-
-  const isPortrait = useMediaQuery('(orientation: portrait)');
 
   const sortedContent = useMemo(
     () =>
@@ -69,20 +53,6 @@ function FolderCollection() {
       : `${baseURL}api/folder/preview/${assetPrefix}.jpg`;
   }
 
-  const scrollToLastWatched = () => {
-    if (fileListRef.current === null) {
-      return;
-    }
-
-    const lastViewElement = fileListRef.current.querySelector(
-      `a[data-index="${lastWatched}"]`
-    );
-
-    if (lastViewElement !== null) {
-      lastViewElement.scrollIntoView(true);
-    }
-  };
-
   useEffect(() => setTitle('Folder collection'), []);
 
   useEffect(() => {
@@ -94,25 +64,6 @@ function FolderCollection() {
 
     fetchFolderContent();
   }, [id, path]);
-
-  useBlocker(({ currentLocation, nextLocation }) => {
-    const folderName = nearestFolder(
-      decodeURI(currentLocation.pathname),
-      decodeURI(nextLocation.pathname)
-    );
-
-    if (folderName !== '') {
-      dispatch(updateLastWatched(folderName));
-    } else {
-      fileListRef.current?.scrollTo(0, 0);
-    }
-
-    return false;
-  });
-
-  useEffect(() => {
-    scrollToLastWatched();
-  }, [content]);
 
   const breadcrumbs = useMemo<BreadcrumbItem[]>(() => {
     const collectionEntry = `${baseURL}folder-collection/${id}`;
@@ -206,13 +157,7 @@ function FolderCollection() {
           </Typography>
         ))}
       </Breadcrumbs>
-      <Stack
-        ref={fileListRef}
-        sx={{ overflowY: 'auto', alignContent: 'flex-start' }}
-        className={styles.content}
-        direction={isPortrait ? 'column' : 'row'}
-        flexWrap={isPortrait ? 'nowrap' : 'wrap'}
-      >
+      <ContentList>
         {sortedContent.map((x) => {
           switch (x.type) {
             case 'file':
@@ -245,7 +190,7 @@ function FolderCollection() {
               );
           }
         })}
-      </Stack>
+      </ContentList>
     </>
   );
 }

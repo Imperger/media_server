@@ -32,7 +32,7 @@ export interface CollectionView extends CollectionBase {
 
 export type CollectionRecord = CollectionFolder | CollectionView;
 
-interface FileRecord {
+export interface FileRecord {
   filename: string;
   size: number;
   duration: number;

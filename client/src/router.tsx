@@ -1,9 +1,11 @@
 import { createBrowserRouter } from 'react-router-dom';
-import Layout from './layout/Layout';
-import Player from './player/Player';
-import Dashboard from './dashboard/Dashboard';
-import Settings from './settings/Settings';
+
 import FolderCollection from './collection/FolderCollection';
+import Dashboard from './dashboard/Dashboard';
+import Layout from './layout/Layout';
+import OfflineCollection from './offline-collection/OfflineCollection';
+import Player from './player/Player';
+import Settings from './settings/Settings';
 
 const router = createBrowserRouter([
   {
@@ -17,6 +19,10 @@ const router = createBrowserRouter([
       {
         path: '/folder-collection/:id/*',
         element: <FolderCollection />
+      },
+      {
+        path: '/offline-collection',
+        element: <OfflineCollection />
       },
       {
         path: '/settings',

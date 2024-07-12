@@ -69,6 +69,19 @@ export class ContentCache {
       .filter((x) => pred(x));
   }
 
+  static async filterPreview(
+    pred: (filename: string) => boolean
+  ): Promise<string[]> {
+    const cache = await caches.open(ContentCache.cacheName);
+    const keys = await cache.keys();
+
+    return keys
+      .map((x) => ContentCache.castToPathname(x))
+      .filter((x) => ContentCache.isPreviewKey(x))
+      .map((x) => ContentCache.contentPath(x))
+      .filter((x) => pred(x));
+  }
+
   private static castToPathname(req: Request): string {
     return new URL(req.url).pathname;
   }

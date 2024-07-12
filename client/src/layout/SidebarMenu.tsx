@@ -1,4 +1,9 @@
-import { Dashboard, Login, Settings } from '@mui/icons-material';
+import {
+  Dashboard,
+  Login,
+  Settings,
+  CloudDownload as CloudDownloadIcon
+} from '@mui/icons-material';
 import {
   Drawer,
   ListItem,
@@ -23,6 +28,18 @@ function SidebarMenu({ open, setOpen }: RWState<'open', boolean>) {
             <Dashboard className={styles.icon} />
           </ListItemIcon>
           <ListItemText className={styles.text} primary={'Dashboard'} />
+        </ListItemButton>
+      </ListItem>
+      <ListItem disablePadding>
+        <ListItemButton
+          component={Link}
+          to={`/offline-collection`}
+          onClick={toggleDrawer(false)}
+        >
+          <ListItemIcon>
+            <CloudDownloadIcon className={styles.icon} />
+          </ListItemIcon>
+          <ListItemText className={styles.text} primary={'Saved'} />
         </ListItemButton>
       </ListItem>
       <ListItem disablePadding>
