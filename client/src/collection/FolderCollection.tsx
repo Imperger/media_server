@@ -150,8 +150,6 @@ function FolderCollection() {
         );
         break;
     }
-
-    console.log(filename, action);
   };
 
   const onDeleteFolder = (name: string) =>

@@ -9,13 +9,13 @@ export class ContentCache {
 
   static async cacheFile(
     url: string,
-    listener: DownloadProgressListener
+    listener?: DownloadProgressListener
   ): Promise<void> {
     const response = await fetch(url);
     const cacheableResponse = response.clone();
     const contentLength = +response.headers.get('Content-Length')!;
 
-    if (contentLength === 0) {
+    if (listener !== undefined && contentLength === 0) {
       console.warn(
         `Download progress listener for request '${url}' will not be called because of missing 'Content-Length' header`
       );
@@ -34,7 +34,7 @@ export class ContentCache {
 
       receivedLength += value.length;
 
-      if (contentLength !== 0) {
+      if (listener !== undefined && contentLength !== 0) {
         listener(receivedLength / contentLength);
       }
     }

@@ -4,7 +4,8 @@ import {
   Menu as MenuIcon,
   PlayArrow,
   CloudDownload as CloudDownloadIcon,
-  CloudDownloadOutlined as CloudDownloadOutlinedIcon
+  CloudDownloadOutlined as CloudDownloadOutlinedIcon,
+  DownloadDone as DownloadDoneIcon
 } from '@mui/icons-material';
 import {
   Card,
@@ -127,8 +128,20 @@ function FileCard(props: FileCardProps) {
       case 'cache':
         {
           try {
-            await ContentCache.cacheFile(videoUrl, (x) => 0);
-            await ContentCache.cacheFile(props.preview, (x) => 0);
+            await ContentCache.cacheFile(videoUrl, (_x) => 0);
+            await ContentCache.cacheFile(props.preview);
+
+            enqueueSnackbar(
+              <>
+                <DownloadDoneIcon sx={{ marginRight: '5px' }} />
+                {props.filename}
+              </>,
+              {
+                variant: 'info',
+                hideIconVariant: true,
+                autoHideDuration: 2500
+              }
+            );
 
             props.onCache(filename, 'cache');
           } catch (e) {
