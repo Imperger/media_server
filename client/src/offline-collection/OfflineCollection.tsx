@@ -8,6 +8,7 @@ import { useTitle } from '../layout/TitleContext';
 import { ArrayHelper } from '../lib/ArrayHelper';
 import ContentList from '../lib/components/content-list/ContentList';
 import { ContentCache } from '../lib/content-cache';
+import { AsyncExceptionTrap } from '../lib/exception-trap';
 import { parseFilename } from '../lib/parse-filename';
 
 function OfflineCollection() {
@@ -36,10 +37,10 @@ function OfflineCollection() {
         await Promise.all(
           cachedFiles.map(async (filename) => {
             const { collectionId, path } = parseFilename(filename);
-            const response = await api.listFolderCollectionContent(
-              collectionId,
-              path
-            );
+
+            const response = await AsyncExceptionTrap.Try(() =>
+              api.listFolderCollectionContent(collectionId, path)
+            ).CatchValue([]);
 
             const found = response.find((x) => {
               return x.type === 'file' && x.filename === filename;
@@ -50,7 +51,7 @@ function OfflineCollection() {
               : {
                   type: 'file',
                   filename,
-                  assetPrefix: `${baseURL}img/default_preview.webp`,
+                  assetPrefix: 'default_preview',
                   createdAt: 0,
                   duration: 0,
                   width: 0,
@@ -84,6 +85,12 @@ function OfflineCollection() {
     }
   };
 
+  function filePreview(assetPrefix: string): string {
+    return assetPrefix === 'default_preview'
+      ? `${baseURL}img/default_preview.webp`
+      : `${baseURL}api/file/preview/${assetPrefix}.jpg`;
+  }
+
   return (
     <ContentList>
       {sortedContent.map((x) => {
@@ -95,7 +102,7 @@ function OfflineCollection() {
             duration={x.duration}
             width={x.width}
             height={x.height}
-            preview={`${baseURL}api/file/preview/${x.assetPrefix}.jpg`}
+            preview={filePreview(x.assetPrefix)}
             createdAt={x.createdAt}
             onDelete={() => 0}
             onCache={onCache}
