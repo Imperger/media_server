@@ -62,7 +62,7 @@ export class FileController {
 
     return new StreamableFile(
       await this.fileAccessService.createContentStream(
-        Path.join(PathHelper.mediaEntry, filename),
+        Path.join(PathHelper.mediaEntry, fileRecord.filename),
         streamOptions
       ),
       { type: this.contentType(filename) }
