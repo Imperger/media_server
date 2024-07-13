@@ -19,13 +19,7 @@ import {
   Typography
 } from '@mui/material';
 import { useSnackbar } from 'notistack';
-import {
-  MouseEvent,
-  SyntheticEvent,
-  useEffect,
-  useMemo,
-  useState
-} from 'react';
+import { MouseEvent, SyntheticEvent, useMemo, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 
 import { useApiService } from '../api-service/api-context';
@@ -54,19 +48,17 @@ export interface FileCardProps {
 
 interface DownloadMenuProps {
   filename: string;
+  isCached: boolean;
   onClose: (e: MouseEvent<HTMLElement>) => void;
   onCache: (filename: string, action: 'cache' | 'evict') => void;
 }
 
-function DownloadMenyItem({ filename, onClose, onCache }: DownloadMenuProps) {
-  const baseURL = import.meta.env.BASE_URL;
-
-  const videoUrl = useMemo(
-    () => `${baseURL}api/file/content/${filename}`,
-    [filename]
-  );
-  const [isCached, setIsCached] = useState(false);
-
+function DownloadMenyItem({
+  filename,
+  onClose,
+  onCache,
+  isCached
+}: DownloadMenuProps) {
   const downloadMedia = async (e: MouseEvent<HTMLElement>) => {
     onCache(filename, 'cache');
     onClose(e);
@@ -76,13 +68,6 @@ function DownloadMenyItem({ filename, onClose, onCache }: DownloadMenuProps) {
     onCache(filename, 'evict');
     onClose(e);
   };
-
-  useEffect(() => {
-    const fetchCachingState = async () =>
-      setIsCached(await ContentCache.isCached(videoUrl));
-
-    fetchCachingState();
-  }, []);
 
   return isCached ? (
     <MenuItem onClick={evictMedia}>
@@ -282,6 +267,7 @@ function FileCard(props: FileCardProps) {
       >
         <DownloadMenyItem
           filename={props.filename}
+          isCached={props.isCached}
           onCache={onCache}
           onClose={closeMenu}
         />
