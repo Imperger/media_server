@@ -18,6 +18,7 @@ import { Link as RouterLink, useParams } from 'react-router-dom';
 
 import { useApiService } from '../api-service/api-context';
 import { useAppDispatch } from '../hooks';
+import { ContentCache } from '../lib/content-cache';
 
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 import styles from './folder-card.module.css';
@@ -46,7 +47,12 @@ function FolderCard({ name, size, files, onDelete, preview }: FolderCardProps) {
   const pathPrefix = useMemo(() => `${path}${path!.length ? '/' : ''}`, [path]);
 
   const deleteFolder = async () => {
-    if (await api.deleteFolder(Number.parseInt(id!), `${pathPrefix}${name}`)) {
+    const relativePath = `${pathPrefix}${name}`;
+    const absolutePath = `${id}/${relativePath}`;
+
+    if (await api.deleteFolder(Number.parseInt(id!), relativePath)) {
+      await ContentCache.evictFolder(absolutePath);
+
       enqueueSnackbar('Deleted', {
         variant: 'info',
         autoHideDuration: 2500

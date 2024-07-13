@@ -50,6 +50,31 @@ export class ContentCache {
     await cache.delete(url);
   }
 
+  static async evictFolder(path: string): Promise<void> {
+    const baseURL = import.meta.env.BASE_URL;
+
+    const contentPathsToEvict = (
+      await ContentCache.filterContent((x) => x.startsWith(path))
+    ).map((x) => `${baseURL}api/file/content/${x}`);
+
+    const assetPrefixes =
+      await ContentCache.extractAssetPrefixes(contentPathsToEvict);
+
+    if (assetPrefixes.length === 0) {
+      return;
+    }
+
+    const cache = await caches.open(ContentCache.cacheName);
+
+    for (const content of contentPathsToEvict) {
+      await cache.delete(content);
+    }
+
+    for (const assetPrefix of assetPrefixes) {
+      await cache.delete(`${baseURL}api/file/preview/${assetPrefix}.jpg`);
+    }
+  }
+
   static async isCached(url: string): Promise<boolean> {
     const cache = await caches.open(ContentCache.cacheName);
 
@@ -80,6 +105,27 @@ export class ContentCache {
       .filter((x) => ContentCache.isPreviewKey(x))
       .map((x) => ContentCache.contentPath(x))
       .filter((x) => pred(x));
+  }
+
+  static async extractAssetPrefixes(urls: string[]): Promise<string[]> {
+    const cache = await caches.open(ContentCache.cacheName);
+
+    const assetPrefixes: string[] = [];
+
+    for (const url of urls) {
+      const response = await cache.match(encodeURI(url));
+
+      if (response === undefined) {
+        continue;
+      }
+
+      const assetPrefixHeader = response.headers.get('Asset-Prefix');
+      if (assetPrefixHeader !== null) {
+        assetPrefixes.push(assetPrefixHeader);
+      }
+    }
+
+    return assetPrefixes;
   }
 
   static async contentSize(): Promise<number> {

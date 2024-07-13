@@ -22,6 +22,7 @@ import { FileContentNotFoundException } from './exceptions';
 import { FileAccessService, RangeOptions } from './file-access.service';
 import { CacheControlGuard } from './guards/cache-control.guard';
 
+import { assetHash } from '@/lib/asset-hash';
 import { PathHelper } from '@/lib/PathHelper';
 
 @Controller('file')
@@ -59,6 +60,8 @@ export class FileController {
     } else {
       res.header('Content-Length', fileRecord.size);
     }
+
+    res.header('Asset-Prefix', assetHash(fileRecord.filename));
 
     return new StreamableFile(
       await this.fileAccessService.createContentStream(
