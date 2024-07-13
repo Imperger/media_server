@@ -158,6 +158,8 @@ function FileCard(props: FileCardProps) {
 
   const deleteFile = async () => {
     if (await api.deleteFile(props.filename)) {
+      await onCache(props.filename, 'evict');
+
       enqueueSnackbar('Deleted', {
         variant: 'info',
         autoHideDuration: 2500
