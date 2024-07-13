@@ -119,7 +119,7 @@ export class ContentCache {
   private static contentPath(key: string): string {
     const pathnamePrefixLength = '/api/file/content/'.length;
 
-    return key.slice(pathnamePrefixLength);
+    return decodeURI(key.slice(pathnamePrefixLength));
   }
 
   private static isPreviewKey(key: string): boolean {
