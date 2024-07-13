@@ -77,7 +77,6 @@ function OfflineCollection() {
   );
 
   const onCache = async (filename: string, action: 'cache' | 'evict') => {
-    console.log(filename);
     if (action === 'evict') {
       setSavedContent(
         ArrayHelper.filterFirst(savedContent, (x) => x.filename !== filename)
