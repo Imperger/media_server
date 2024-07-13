@@ -1,10 +1,11 @@
-import { Box } from '@mui/material';
+import prettyBytes from 'pretty-bytes';
 import { useEffect, useMemo, useState } from 'react';
 
 import { useApiService } from '../api-service/api-context';
 import { FileRecord } from '../api-service/api-service';
 import FileCard from '../collection/FileCard';
 import { useTitle } from '../layout/TitleContext';
+import { ArrayHelper } from '../lib/ArrayHelper';
 import ContentList from '../lib/components/content-list/ContentList';
 import { ContentCache } from '../lib/content-cache';
 import { parseFilename } from '../lib/parse-filename';
@@ -15,7 +16,17 @@ function OfflineCollection() {
   const { setTitle } = useTitle();
   const [savedContent, setSavedContent] = useState<FileRecord[]>([]);
 
-  useEffect(() => setTitle('Saved'), []);
+  const updateTitle = async () =>
+    setTitle(`Saved (${prettyBytes(await ContentCache.contentSize())})`);
+
+  useEffect(() => {
+    setTitle('Saved');
+    updateTitle();
+  }, []);
+
+  useEffect(() => {
+    updateTitle();
+  }, [savedContent]);
 
   useEffect(() => {
     const loadSavedContent = async () => {
@@ -64,30 +75,36 @@ function OfflineCollection() {
     [savedContent]
   );
 
+  const onCache = async (filename: string, action: 'cache' | 'evict') => {
+    console.log(filename);
+    if (action === 'evict') {
+      setSavedContent(
+        ArrayHelper.filterFirst(savedContent, (x) => x.filename !== filename)
+      );
+    }
+  };
+
   return (
-    <>
-      <Box>123</Box>
-      <ContentList>
-        {sortedContent.map((x) => {
-          return (
-            <FileCard
-              key={x.filename}
-              filename={x.filename}
-              size={x.size}
-              duration={x.duration}
-              width={x.width}
-              height={x.height}
-              preview={`${baseURL}api/file/preview/${x.assetPrefix}.jpg`}
-              createdAt={x.createdAt}
-              onDelete={() => 0}
-              onCache={() => 0}
-              isAvailable={true}
-              isCached={true}
-            />
-          );
-        })}
-      </ContentList>
-    </>
+    <ContentList>
+      {sortedContent.map((x) => {
+        return (
+          <FileCard
+            key={x.filename}
+            filename={x.filename}
+            size={x.size}
+            duration={x.duration}
+            width={x.width}
+            height={x.height}
+            preview={`${baseURL}api/file/preview/${x.assetPrefix}.jpg`}
+            createdAt={x.createdAt}
+            onDelete={() => 0}
+            onCache={onCache}
+            isAvailable={true}
+            isCached={true}
+          />
+        );
+      })}
+    </ContentList>
   );
 }
 

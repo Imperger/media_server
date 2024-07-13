@@ -82,6 +82,32 @@ export class ContentCache {
       .filter((x) => pred(x));
   }
 
+  static async contentSize(): Promise<number> {
+    const cache = await caches.open(ContentCache.cacheName);
+    const keys = (await cache.keys())
+      .map((x) => ContentCache.castToPathname(x))
+      .filter(
+        (x) => ContentCache.isContentKey(x) || ContentCache.isPreviewKey(x)
+      );
+
+    let size = 0;
+    for (const key of keys) {
+      const response = await cache.match(key);
+
+      if (response === undefined) {
+        continue;
+      }
+
+      const contentLength = response.headers.get('Content-Length');
+
+      if (contentLength !== null) {
+        size += Number.parseInt(contentLength);
+      }
+    }
+
+    return size;
+  }
+
   private static castToPathname(req: Request): string {
     return new URL(req.url).pathname;
   }
