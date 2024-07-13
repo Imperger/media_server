@@ -8,11 +8,9 @@ import {
   Header,
   Param,
   ParseIntPipe,
-  Res,
   StreamableFile,
   UseGuards
 } from '@nestjs/common';
-import { FastifyReply } from 'fastify';
 import * as mime from 'mime';
 
 import { FileAccessService } from './file-access.service';
