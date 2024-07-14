@@ -17,16 +17,25 @@ function OfflineCollection() {
   const { setTitle } = useTitle();
   const [savedContent, setSavedContent] = useState<FileRecord[]>([]);
 
-  const updateTitle = async () =>
-    setTitle(`Saved (${prettyBytes(await ContentCache.contentSize())})`);
+  const updateTitle = async (cancelator: { value: boolean }) => {
+    const size = await ContentCache.contentSize();
+
+    if (!cancelator.value) {
+      setTitle(`Saved (${prettyBytes(size)})`);
+    }
+  };
 
   useEffect(() => {
     setTitle('Saved');
-    updateTitle();
+    updateTitle({ value: false });
   }, []);
 
   useEffect(() => {
-    updateTitle();
+    const cancelator = { value: false };
+
+    updateTitle(cancelator);
+
+    return () => void (cancelator.value = true);
   }, [savedContent]);
 
   useEffect(() => {
