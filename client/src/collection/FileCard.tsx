@@ -102,6 +102,7 @@ function FileCard(props: FileCardProps) {
 
   const openMenu = (e: MouseEvent<HTMLElement>) => {
     e.preventDefault();
+    e.stopPropagation();
 
     setMenuAnchor(e.currentTarget);
   };
