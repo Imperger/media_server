@@ -96,6 +96,9 @@ function FileCard(props: FileCardProps) {
   const [fileInfoDialogOpened, setFileInfoDialogOpened] = useState(false);
   const [deleteConfirmDialogOpened, setDeleteConfirmDialogOpened] =
     useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
+
+  const isDownloading = useMemo(() => downloadProgress > 0, [downloadProgress]);
 
   const openMenu = (e: MouseEvent<HTMLElement>) => {
     e.preventDefault();
@@ -113,7 +116,9 @@ function FileCard(props: FileCardProps) {
       case 'cache':
         {
           try {
-            await ContentCache.cacheFile(videoUrl, (_x) => 0);
+            await ContentCache.cacheFile(videoUrl, (x) =>
+              setDownloadProgress(x)
+            );
             await ContentCache.cacheFile(props.preview);
 
             enqueueSnackbar(
@@ -128,6 +133,7 @@ function FileCard(props: FileCardProps) {
               }
             );
 
+            setDownloadProgress(0);
             props.onCache(filename, 'cache');
           } catch (e) {
             console.error(e);
@@ -213,6 +219,11 @@ function FileCard(props: FileCardProps) {
     [props.isCached]
   );
 
+  const titileDownloadProgressClipPath = useMemo(
+    () => `inset(0 ${100 - downloadProgress * 100}% 0 0)`,
+    [downloadProgress]
+  );
+
   return (
     <>
       <Link
@@ -241,6 +252,18 @@ function FileCard(props: FileCardProps) {
           >
             {name}
           </Typography>
+          {isDownloading && (
+            <Typography
+              sx={{ clipPath: titileDownloadProgressClipPath }}
+              className={`${styles.title} ${styles.titleCached}`}
+              gutterBottom
+              variant="h5"
+              component="div"
+            >
+              {name}
+            </Typography>
+          )}
+
           <Typography
             className={styles.duration}
             style={{ margin: 0 }}
