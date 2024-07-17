@@ -25,6 +25,7 @@ import {
 } from 'react';
 import { useParams } from 'react-router-dom';
 
+import { useAppDispatch, useAppSelector } from '../hooks';
 import { formatDuration } from '../lib/format-duration';
 import {
   Gesture,
@@ -34,6 +35,7 @@ import {
 import { reinterpret_cast } from '../lib/reinterpret-cast';
 
 import styles from './player.module.css';
+import { updateVolume } from './store/player';
 
 interface RewindStepProperty {
   step: number;
@@ -78,6 +80,7 @@ const Controls = memo(
     togglePlay,
     onVolume
   }: ControlsProps) => {
+    const playerSettings = useAppSelector((state) => state.settings.player);
     const seekContainerRef = useRef<HTMLElement>(null);
     const [volume, setVolume] = useState(1);
 
@@ -122,6 +125,8 @@ const Controls = memo(
         }
       }
     };
+
+    useEffect(() => setVolume(playerSettings.volume.value), []);
 
     return (
       <Box className={styles.controls} sx={{ opacity: +shown }}>
@@ -194,6 +199,8 @@ function Player() {
 
   const baseURL = import.meta.env.BASE_URL;
   const { '*': filename } = useParams();
+  const dispatch = useAppDispatch();
+  const playerSettings = useAppSelector((state) => state.settings.player);
   const containerRef = useRef<HTMLElement>(null);
   const playerRef = useRef<HTMLVideoElement>(null);
 
@@ -227,6 +234,10 @@ function Player() {
   const onVolume = (volume: number) => {
     if (playerRef.current !== null) {
       playerRef.current.volume = volume;
+
+      if (playerSettings.volume.type === 'previous') {
+        dispatch(updateVolume({ type: 'previous', value: volume }));
+      }
     }
 
     showControls();
@@ -283,6 +294,10 @@ function Player() {
     setPlayTime(0);
     setDuration(0);
     containerRef.current?.focus();
+
+    if (playerRef.current !== null) {
+      playerRef.current.volume = playerSettings.volume.value;
+    }
 
     return gestureRecognizer.addEventListener((e: Gesture) => {
       switch (e.rule.type) {

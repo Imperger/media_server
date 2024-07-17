@@ -1,0 +1,18 @@
+.details {
+    display: flex;
+    flex-direction: column;
+    max-width: 200px;
+}
+
+.description {
+    white-space: nowrap;
+}
+
+.volumeSettingsType {
+    margin-right: 15px;
+}
+
+.volumeSettings {
+    display: flex;
+    flex-direction: row;
+}
