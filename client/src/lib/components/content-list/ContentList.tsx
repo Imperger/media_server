@@ -2,7 +2,10 @@ import { Stack, useMediaQuery } from '@mui/material';
 import { ReactNode, useEffect, useRef } from 'react';
 import { useBlocker } from 'react-router-dom';
 
-import { updateLastWatched } from '../../../collection/store/last-watched';
+import {
+  resetLastWatched,
+  updateLastWatched
+} from '../../../collection/store/last-watched';
 import { useAppDispatch, useAppSelector } from '../../../hooks';
 
 import styles from './content-list.module.css';
@@ -37,6 +40,7 @@ function ContentList({ children }: ContentListProps) {
 
     if (lastViewElement !== null) {
       lastViewElement.scrollIntoView(true);
+      dispatch(resetLastWatched());
     }
   };
 
