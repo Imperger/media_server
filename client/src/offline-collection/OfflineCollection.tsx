@@ -27,7 +27,12 @@ function OfflineCollection() {
 
   useEffect(() => {
     setTitle('Saved');
-    updateTitle({ value: false });
+
+    const cancelator = { value: false };
+
+    updateTitle(cancelator);
+
+    return void (cancelator.value = true);
   }, []);
 
   useEffect(() => {
