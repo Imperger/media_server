@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 
 import { useTitle } from '../layout/TitleContext';
 
+import AppInfo from './AppInfo';
 import Player from './Player';
 
 function Settings() {
@@ -13,6 +14,7 @@ function Settings() {
   return (
     <Box sx={{ flexGrow: 1 }}>
       <Player />
+      <AppInfo />
     </Box>
   );
 }

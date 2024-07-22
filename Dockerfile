@@ -23,9 +23,11 @@ FROM node:22.3.0-alpine3.20 as client_build
 ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
 ENV PATH=$PATH:/home/node/.npm-global/bin
 
+RUN apk update && apk add git
+
 WORKDIR /build
 
-COPY client/ .
+COPY client/ .git .
 
 RUN npm i && \
     npm run build
