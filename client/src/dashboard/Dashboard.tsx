@@ -10,6 +10,7 @@ import {
   CollectionType
 } from '../api-service/api-service';
 import { useTitle } from '../layout/TitleContext';
+import { less } from '../lib/comparator';
 import { RejectedResponse } from '../lib/RejectedResponse';
 
 import AddViewCard from './AddCollectionCard';
@@ -107,9 +108,7 @@ function Dashboard() {
               type: 'folder',
               size: 0
             } as CollectionFolder
-          ].sort((a, b) =>
-            a.caption < b.caption ? -1 : a.caption === b.caption ? 0 : 1
-          )
+          ].sort(less)
         );
       } else if (type === 'view') {
         //const collection = await api.CreateViewCollection(caption);

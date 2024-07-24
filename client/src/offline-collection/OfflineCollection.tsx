@@ -6,6 +6,7 @@ import { FileRecord } from '../api-service/api-service';
 import FileCard from '../collection/FileCard';
 import { useTitle } from '../layout/TitleContext';
 import { ArrayHelper } from '../lib/ArrayHelper';
+import { less } from '../lib/comparator';
 import ContentList from '../lib/components/content-list/ContentList';
 import { ContentCache } from '../lib/content-cache';
 import { AsyncExceptionTrap } from '../lib/exception-trap';
@@ -81,12 +82,9 @@ function OfflineCollection() {
 
   const sortedContent = useMemo(
     () =>
-      savedContent.sort((a, b) => {
-        const aKey = a.filename.toLowerCase();
-        const bKey = b.filename.toLowerCase();
-
-        return aKey === bKey ? 0 : aKey < bKey ? -1 : 1;
-      }),
+      savedContent.sort((a, b) =>
+        less(a.filename.toLowerCase(), b.filename.toLowerCase())
+      ),
     [savedContent]
   );
 
