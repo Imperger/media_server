@@ -53,7 +53,7 @@ interface DownloadMenuProps {
   onCache: (filename: string, action: 'cache' | 'evict') => void;
 }
 
-function DownloadMenyItem({
+function DownloadMenuItem({
   filename,
   onClose,
   onCache,
@@ -220,7 +220,7 @@ function FileCard(props: FileCardProps) {
     [props.isCached]
   );
 
-  const titileDownloadProgressClipPath = useMemo(
+  const titleDownloadProgressClipPath = useMemo(
     () => `inset(0 ${100 - downloadProgress * 100}% 0 0)`,
     [downloadProgress]
   );
@@ -255,7 +255,7 @@ function FileCard(props: FileCardProps) {
           </Typography>
           {isDownloading && (
             <Typography
-              sx={{ clipPath: titileDownloadProgressClipPath }}
+              sx={{ clipPath: titleDownloadProgressClipPath }}
               className={`${styles.title} ${styles.titleCached}`}
               gutterBottom
               variant="h5"
@@ -291,7 +291,7 @@ function FileCard(props: FileCardProps) {
           'aria-labelledby': 'basic-button'
         }}
       >
-        <DownloadMenyItem
+        <DownloadMenuItem
           filename={props.filename}
           isCached={props.isCached}
           onCache={onCache}
