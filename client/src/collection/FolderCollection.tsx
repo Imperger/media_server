@@ -1,5 +1,21 @@
-import { Breadcrumbs, Typography } from '@mui/material';
-import { useEffect, useMemo, useState } from 'react';
+import {
+  Sort as SortIcon,
+  SortByAlpha as SortByAlphaIcon,
+  AccessTime as AccessTimeIcon,
+  ArrowUpward as ArrowUpwardIcon,
+  ArrowDownward as ArrowDownwardIcon
+} from '@mui/icons-material';
+import {
+  Box,
+  Breadcrumbs,
+  IconButton,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
+  Typography
+} from '@mui/material';
+import { useEffect, useMemo, useState, MouseEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import { useApiService } from '../api-service/api-context';
@@ -8,23 +24,146 @@ import {
   FolderMetainfo
 } from '../api-service/api-service';
 import { useOnline } from '../api-service/useOnline';
+import { useAppDispatch, useAppSelector } from '../hooks';
 import { useTitle } from '../layout/TitleContext';
 import { ArrayHelper } from '../lib/ArrayHelper';
+import { greater, less } from '../lib/comparator';
 import ContentList from '../lib/components/content-list/ContentList';
+import FileSizeIcon from '../lib/components/icons/FileSizeIcon';
 import { ContentCache } from '../lib/content-cache';
 import { IterableHelper } from '../lib/iterable-helper';
 
 import FileCard from './FileCard';
+import styles from './folder-collection.module.css';
 import FolderCard from './FolderCard';
+import { SortRule, updateSortRule } from './store/sort-rule';
 
 interface BreadcrumbItem {
   caption: string;
   path: string;
 }
 
+interface SortOrderProps {
+  order: SortRule['order'];
+}
+
+function SortOrderIcon({ order }: SortOrderProps) {
+  switch (order) {
+    case 'asc':
+      return <ArrowUpwardIcon />;
+    case 'desc':
+      return <ArrowDownwardIcon />;
+    case 'none':
+      return <Box sx={{ width: 24, height: 24 }}></Box>;
+  }
+}
+
+interface SortMenuProps {
+  sortRule: SortRule;
+  setSortRule: (sortRule: SortRule) => void;
+}
+
+function SortMenu({ sortRule, setSortRule }: SortMenuProps) {
+  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
+  const isMenuOpen = Boolean(menuAnchor);
+
+  const openMenu = (e: MouseEvent<HTMLElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    setMenuAnchor(e.currentTarget);
+  };
+
+  const closeMenu = (e: MouseEvent<HTMLElement>) => {
+    e.preventDefault();
+
+    setMenuAnchor(null);
+  };
+
+  const onSortingChange = (
+    e: MouseEvent<HTMLElement>,
+    property: SortRule['property']
+  ) => {
+    if (property === sortRule.property) {
+      setSortRule({
+        property,
+        order: sortRule.order === 'asc' ? 'desc' : 'asc'
+      });
+    } else {
+      setSortRule({ property, order: 'asc' });
+    }
+
+    closeMenu(e);
+  };
+
+  const sortIconOrder = (property: SortRule['property']) =>
+    property === sortRule.property ? sortRule.order : 'none';
+
+  return (
+    <>
+      <IconButton onClick={openMenu} size="small">
+        <SortIcon />
+      </IconButton>
+      <Menu open={isMenuOpen} onClose={closeMenu} anchorEl={menuAnchor}>
+        <MenuItem
+          sx={{ paddingRight: '5px' }}
+          onClick={(e) => onSortingChange(e, 'title')}
+        >
+          <ListItemIcon>
+            <SortByAlphaIcon />
+          </ListItemIcon>
+          <ListItemText className={styles.sortMenuItemTitle}>
+            Title
+          </ListItemText>
+          <SortOrderIcon order={sortIconOrder('title')} />
+        </MenuItem>
+        <MenuItem
+          sx={{ paddingRight: '5px' }}
+          onClick={(e) => onSortingChange(e, 'duration')}
+        >
+          <ListItemIcon>
+            <AccessTimeIcon />
+          </ListItemIcon>
+          <ListItemText className={styles.sortMenuItemTitle}>
+            Duration
+          </ListItemText>
+          <SortOrderIcon order={sortIconOrder('duration')} />
+        </MenuItem>
+        <MenuItem
+          sx={{ paddingRight: '5px' }}
+          onClick={(e) => onSortingChange(e, 'size')}
+        >
+          <ListItemIcon>
+            <FileSizeIcon />
+          </ListItemIcon>
+          <ListItemText className={styles.sortMenuItemTitle}>Size</ListItemText>
+          <SortOrderIcon order={sortIconOrder('size')} />
+        </MenuItem>
+      </Menu>
+    </>
+  );
+}
+
+function extractKey(obj: FolderContentRecord, rule: SortRule) {
+  switch (rule.property) {
+    case 'title':
+      return (obj.type === 'folder' ? obj.name : obj.filename).toLowerCase();
+    case 'duration':
+      return obj.type === 'file'
+        ? obj.duration
+        : rule.order === 'asc'
+          ? Number.POSITIVE_INFINITY
+          : 0;
+    case 'size':
+      return obj.size;
+  }
+}
+
 function FolderCollection() {
   const baseURL = import.meta.env.BASE_URL;
   const { id, '*': path } = useParams();
+  const sortRule = useAppSelector((state) => state.folderCollectionSortRule);
+  const dispatch = useAppDispatch();
   const api = useApiService();
   const { setTitle } = useTitle();
   const isOnline = useOnline();
@@ -36,15 +175,20 @@ function FolderCollection() {
   });
   const [cachedFiles, setCachedFiles] = useState<string[]>([]);
 
+  const setSortRule = (sortRule: SortRule) =>
+    dispatch(updateSortRule(sortRule));
+
   const sortedContent = useMemo(
     () =>
       content.sort((a, b) => {
-        const aKey = (a.type === 'folder' ? a.name : a.filename).toLowerCase();
-        const bKey = (b.type === 'folder' ? b.name : b.filename).toLowerCase();
+        const aKey = extractKey(a, sortRule);
+        const bKey = extractKey(b, sortRule);
 
-        return aKey === bKey ? 0 : aKey < bKey ? -1 : 1;
+        return sortRule.order === 'asc'
+          ? less(aKey, bKey)
+          : greater(aKey, bKey);
       }),
-    [content]
+    [content, sortRule]
   );
 
   function folderPreview(assetPrefix: string): string {
@@ -145,18 +289,24 @@ function FolderCollection() {
 
   return (
     <>
-      <Breadcrumbs aria-label="breadcrumb">
-        {breadcrumbs.slice(0, -1).map((x) => (
-          <Link key={x.path} color="inherit" to={x.path}>
-            <Typography color="text.primary">{x.caption}</Typography>
-          </Link>
-        ))}
-        {breadcrumbs.slice(-1).map((x) => (
-          <Typography key={x.path} color="text.primary">
-            {x.caption}
-          </Typography>
-        ))}
-      </Breadcrumbs>
+      <Box className={styles.navigation}>
+        <Breadcrumbs className={styles.breadcrumbs} aria-label="breadcrumb">
+          {breadcrumbs.slice(0, -1).map((x) => (
+            <Link key={x.path} color="inherit" to={x.path}>
+              <Typography color="text.primary">{x.caption}</Typography>
+            </Link>
+          ))}
+          {breadcrumbs.slice(-1).map((x) => (
+            <Typography key={x.path} color="text.primary">
+              {x.caption}
+            </Typography>
+          ))}
+        </Breadcrumbs>
+        <SortMenu
+          sortRule={sortRule}
+          setSortRule={(sortRule: SortRule) => setSortRule(sortRule)}
+        />
+      </Box>
       <ContentList>
         {sortedContent.map((x) => {
           switch (x.type) {

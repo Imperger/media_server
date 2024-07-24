@@ -1,6 +1,7 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 
 import lastWatchedReducer from './collection/store/last-watched';
+import folderCollectionSortRuleReducer from './collection/store/sort-rule';
 import playerSettingsReducer, {
   restorePlayerSettings
 } from './player/store/player';
@@ -8,6 +9,7 @@ import playerSettingsReducer, {
 export const store = configureStore({
   reducer: {
     lastWatched: lastWatchedReducer,
+    folderCollectionSortRule: folderCollectionSortRuleReducer,
     settings: combineReducers({ player: playerSettingsReducer })
   },
   preloadedState: { settings: { player: restorePlayerSettings() } }
