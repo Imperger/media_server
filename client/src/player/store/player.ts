@@ -20,7 +20,7 @@ export const playerSlice = createSlice<
   string,
   SliceSelectors<PlayerState>
 >({
-  name: 'lastWatched',
+  name: 'playerSettings',
   initialState: {
     volume: { type: 'previous', value: 1 }
   },
