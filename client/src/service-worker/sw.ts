@@ -131,7 +131,8 @@ registerRoute(({ url }) => {
   const apiEdnpoints = [
     '/api/collection',
     '/api/collection-folder/metainfo/',
-    '/api/collection-folder/'
+    '/api/collection-folder/immediate/',
+    '/api/collection-folder/all/'
   ];
 
   return apiEdnpoints.some((endpoint) => url.pathname.startsWith(endpoint));

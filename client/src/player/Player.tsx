@@ -1,11 +1,13 @@
 import {
-  Fullscreen,
-  Pause,
-  PlayArrow,
-  VolumeDown,
-  VolumeMute,
-  VolumeOff,
-  VolumeUp
+  Fullscreen as FullscreenIcon,
+  Pause as PauseIcon,
+  PlayArrow as PlayArrowIcon,
+  SkipNext as SkipNextIcon,
+  SkipPrevious as SkipPreviousIcon,
+  VolumeDown as VolumeDownIcon,
+  VolumeMute as VolumeMuteIcon,
+  VolumeOff as VolumeOffIcon,
+  VolumeUp as VolumeUpIcon
 } from '@mui/icons-material';
 import { Box, IconButton, Slider, Stack, Typography } from '@mui/material';
 import {
@@ -25,7 +27,10 @@ import {
 } from 'react';
 import { useParams } from 'react-router-dom';
 
+import { useApiService } from '../api-service/api-context';
+import { useOnline } from '../api-service/useOnline';
 import { useAppDispatch, useAppSelector } from '../hooks';
+import { ContentCache } from '../lib/content-cache';
 import { formatDuration } from '../lib/format-duration';
 import {
   Gesture,
@@ -33,6 +38,7 @@ import {
   SwipeDirecion
 } from '../lib/gestures-recognizer';
 import { reinterpret_cast } from '../lib/reinterpret-cast';
+import { RWState } from '../lib/rw-state';
 
 import styles from './player.module.css';
 import { updateVolume } from './store/player';
@@ -42,7 +48,10 @@ interface RewindStepProperty {
   touchMoveThreshold: number;
 }
 
-interface ControlsProps {
+type PlayMode = 'file' | 'folder';
+
+interface ControlsProps extends RWState<'playingIdx', number> {
+  playMode: PlayMode;
   shown: boolean;
   playTime: number;
   duration: number;
@@ -51,6 +60,7 @@ interface ControlsProps {
   play: boolean;
   togglePlay: () => void;
   onVolume: (volume: number) => void;
+  playlist: string[];
 }
 
 interface VolumeProps extends DefaultComponentProps<OverridableTypeMap> {
@@ -59,18 +69,19 @@ interface VolumeProps extends DefaultComponentProps<OverridableTypeMap> {
 
 const VolumeIcon = memo(({ volume, ...props }: VolumeProps) => {
   if (volume === 0) {
-    return <VolumeOff {...props} />;
+    return <VolumeOffIcon {...props} />;
   } else if (volume < 0.5) {
-    return <VolumeMute {...props} />;
+    return <VolumeMuteIcon {...props} />;
   } else if (volume < 0.8) {
-    return <VolumeDown {...props} />;
+    return <VolumeDownIcon {...props} />;
   }
 
-  return <VolumeUp {...props} />;
+  return <VolumeUpIcon {...props} />;
 });
 
 const Controls = memo(
   ({
+    playMode,
     shown,
     playTime,
     duration,
@@ -78,11 +89,17 @@ const Controls = memo(
     playerRef,
     play,
     togglePlay,
-    onVolume
+    onVolume,
+    playlist,
+    playingIdx,
+    setPlayingIdx
   }: ControlsProps) => {
     const playerSettings = useAppSelector((state) => state.settings.player);
     const seekContainerRef = useRef<HTMLElement>(null);
     const [volume, setVolume] = useState(1);
+
+    const prevDisabled = playingIdx <= 0;
+    const nextDisabled = playingIdx >= playlist.length - 1;
 
     const seekWidth = useMemo(() => {
       if (seekContainerRef.current === null) {
@@ -126,6 +143,9 @@ const Controls = memo(
       }
     };
 
+    const onPrev = () => setPlayingIdx((prevIdx) => prevIdx - 1);
+    const onNext = () => setPlayingIdx((prevIdx) => prevIdx + 1);
+
     useEffect(() => setVolume(playerSettings.volume.value), []);
 
     return (
@@ -142,9 +162,9 @@ const Controls = memo(
             onClick={togglePlay}
           >
             {play ? (
-              <Pause sx={{ fontSize: '1.5em' }}></Pause>
+              <PauseIcon sx={{ fontSize: '1.5em' }} />
             ) : (
-              <PlayArrow sx={{ fontSize: '1.5em' }}></PlayArrow>
+              <PlayArrowIcon sx={{ fontSize: '1.5em' }} />
             )}
           </IconButton>
           <Typography
@@ -152,6 +172,25 @@ const Controls = memo(
             color="text.primary"
             component="div"
           >{`${playTimeUI} / ${durationUI}`}</Typography>
+          {playMode === 'folder' && (
+            <>
+              <IconButton
+                sx={{ '&:focus': { outline: 'none' } }}
+                onClick={onPrev}
+                disabled={prevDisabled}
+              >
+                <SkipPreviousIcon sx={{ fontSize: '1.5em' }} />
+              </IconButton>
+              <IconButton
+                sx={{ '&:focus': { outline: 'none' } }}
+                onClick={onNext}
+                disabled={nextDisabled}
+              >
+                <SkipNextIcon sx={{ fontSize: '1.5em' }} />
+              </IconButton>
+            </>
+          )}
+
           <Box flexGrow={1} />
           <VolumeIcon
             volume={volume}
@@ -171,7 +210,7 @@ const Controls = memo(
             sx={{ '&:focus': { outline: 'none' }, marginLeft: '15px' }}
             onClick={toggleFullscreen}
           >
-            <Fullscreen sx={{ fontSize: '1.5em' }}></Fullscreen>
+            <FullscreenIcon sx={{ fontSize: '1.5em' }}></FullscreenIcon>
           </IconButton>
         </Stack>
       </Box>
@@ -179,7 +218,11 @@ const Controls = memo(
   }
 );
 
-function Player() {
+export interface PlayerProps {
+  playMode: PlayMode;
+}
+
+function Player({ playMode }: PlayerProps) {
   const hideControlsTimeout = 5000;
   const rewindMap: RewindStepProperty[] = [
     { step: 150, touchMoveThreshold: 150 },
@@ -198,7 +241,10 @@ function Player() {
   );
 
   const baseURL = import.meta.env.BASE_URL;
-  const { '*': filename } = useParams();
+  const { id, '*': filename } = useParams();
+  const collectionId = Number.parseInt(id!);
+  const api = useApiService();
+  const isOnline = useOnline();
   const dispatch = useAppDispatch();
   const playerSettings = useAppSelector((state) => state.settings.player);
   const containerRef = useRef<HTMLElement>(null);
@@ -210,11 +256,35 @@ function Player() {
   const [controlsShown, setControlsShown] = useState(true);
   const [hideTrigger, setHideTrigger] = useState(0);
 
-  const resceduleHiding = () => setHideTrigger((x) => x + 1);
+  const [playlist, setPlaylist] = useState<string[]>([]);
+  const [availablePlaylist, setAvailablePlaylist] = useState<string[]>([]);
+  const [playingIdx, setPlayingIdx] = useState(0);
+  const hasSrc = availablePlaylist.length > 0;
+  const src = availablePlaylist[playingIdx];
+
+  useEffect(() => {
+    if (isOnline) {
+      setAvailablePlaylist([...playlist]);
+      return;
+    }
+
+    let cancelator = false;
+    const fillAvailablePlaylist = async () => {
+      const cachedFiles = await ContentCache.keep(playlist.map((x) => x));
+      if (!cancelator) {
+        setAvailablePlaylist(cachedFiles);
+      }
+    };
+    fillAvailablePlaylist();
+
+    return () => void (cancelator = true);
+  }, [isOnline, playlist]);
+
+  const rescheduleHiding = () => setHideTrigger((x) => x + 1);
 
   const showControls = () => {
     setControlsShown(true);
-    resceduleHiding();
+    rescheduleHiding();
   };
 
   const togglePlay = () => {
@@ -299,6 +369,27 @@ function Player() {
       playerRef.current.volume = playerSettings.volume.value;
     }
 
+    switch (playMode) {
+      case 'file':
+        setPlaylist([`${baseURL}api/file/content/${collectionId}/${filename}`]);
+        break;
+      case 'folder':
+        {
+          const fetchFolderFileList = async () => {
+            const files = await api.listFolderCollectionAllContent(
+              collectionId,
+              filename!
+            );
+
+            setPlaylist(
+              files.map((x) => `${baseURL}api/file/content/${x.filename}`)
+            );
+          };
+          fetchFolderFileList();
+        }
+        break;
+    }
+
     return gestureRecognizer.addEventListener((e: Gesture) => {
       switch (e.rule.type) {
         case 'swipe':
@@ -320,6 +411,14 @@ function Player() {
     return () => clearTimeout(timer);
   }, [hideTrigger]);
 
+  useEffect(() => {
+    if (playerRef.current === null) {
+      return;
+    }
+
+    playerRef.current.play();
+  }, [playingIdx]);
+
   return (
     <Box
       ref={containerRef}
@@ -333,7 +432,7 @@ function Player() {
         className={styles.video}
         preload="metadata"
         controlsList="nodownload"
-        src={`${baseURL}api/file/content/${filename}`}
+        {...(hasSrc ? { src } : {})}
         onClick={togglePlay}
         onTimeUpdate={onTimeUpdate}
         onDurationChange={onDurationChange}
@@ -344,8 +443,10 @@ function Player() {
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
         onTouchCancel={onTouchCancel}
+        autoPlay
       ></video>
       <Controls
+        playMode={playMode}
         shown={controlsShown}
         playTime={playTime}
         duration={duration}
@@ -354,6 +455,9 @@ function Player() {
         play={play}
         togglePlay={togglePlay}
         onVolume={onVolume}
+        playlist={availablePlaylist}
+        playingIdx={playingIdx}
+        setPlayingIdx={setPlayingIdx}
       />
     </Box>
   );

@@ -75,10 +75,17 @@ export class ContentCache {
     }
   }
 
-  static async isCached(url: string): Promise<boolean> {
+  /**
+   * Throws away not cached urls
+   * @param urls
+   * @returns only cached urls
+   */
+  static async keep(urls: string[]): Promise<string[]> {
     const cache = await caches.open(ContentCache.cacheName);
 
-    return (await cache.match(url)) !== undefined;
+    return (await Promise.all(urls.map((x) => cache.match(encodeURI(x)))))
+      .filter((x) => x !== undefined)
+      .map((x) => ContentCache.castToPathname(x));
   }
 
   static async filterContent(
@@ -154,7 +161,7 @@ export class ContentCache {
     return size;
   }
 
-  private static castToPathname(req: Request): string {
+  private static castToPathname(req: Request | Response): string {
     return new URL(req.url).pathname;
   }
 

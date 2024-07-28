@@ -31,8 +31,12 @@ const router = createBrowserRouter([
     ]
   },
   {
-    path: '/play/*',
-    element: <Player />
+    path: '/play/:id/*',
+    element: <Player playMode="file" />
+  },
+  {
+    path: '/play-folder/:id/*',
+    element: <Player playMode="folder" />
   }
 ]);
 

@@ -48,7 +48,7 @@ export class FolderCollectionController {
     };
   }
 
-  @Get(':id/*')
+  @Get('immediate/:id/*')
   async list(
     @Param('id', ParseIntPipe) id: number,
     @Param('*') path: string
@@ -58,6 +58,21 @@ export class FolderCollectionController {
     }
 
     return this.collectionFolderService.listFolderContent(id, path);
+  }
+
+  @Get('all/:id/*')
+  async listIncludeSubdirectories(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('*') path: string
+  ): Promise<FolderContentRecord[]> {
+    if (path.endsWith('/')) {
+      path = path.slice(0, -1);
+    }
+
+    return this.collectionFolderService.listFolderFilesIncludeSubdirectories(
+      id,
+      path
+    );
   }
 
   @Get('metainfo/:id')

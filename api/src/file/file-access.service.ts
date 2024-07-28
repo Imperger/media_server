@@ -207,6 +207,36 @@ export class FileAccessService {
     ).map((x) => ({ ...x, assetPrefix: assetHash(x.filename) }));
   }
 
+  /**
+   * Retrieve files at specified path, includes subdirectories
+   * @param path Example 'a', 'a/b'
+   * @returns file list
+   */
+  async listIncludeSubdiretories(path: string): Promise<FileRecord[]> {
+    let filter = '';
+    if (path === '.') {
+      path = '';
+      filter = '%';
+    } else {
+      path += '/';
+      filter = `${path}%`;
+    }
+
+    return (
+      await this.db
+        .select({
+          filename: File.filename,
+          size: File.size,
+          width: File.width,
+          height: File.height,
+          duration: File.duration,
+          createdAt: File.createdAt
+        })
+        .from(File)
+        .where(sql`${File.filename} like ${filter}`)
+    ).map((x) => ({ ...x, assetPrefix: assetHash(x.filename) }));
+  }
+
   async generateAssets(file: FileRecord): Promise<boolean> {
     return this.mediaTool.generateAssets(file.filename, {
       previewTimepoint: Math.round(file.duration / 10),

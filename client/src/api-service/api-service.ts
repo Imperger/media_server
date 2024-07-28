@@ -111,7 +111,18 @@ export class ApiService {
   ): Promise<FolderContentRecord[]> {
     return (
       await this.axios.get<FolderContentRecord[]>(
-        `collection-folder/${collectionId}/${path}`
+        `collection-folder/immediate/${collectionId}/${path}`
+      )
+    ).data;
+  }
+
+  async listFolderCollectionAllContent(
+    collectionId: number,
+    path: string
+  ): Promise<FileRecordVariant[]> {
+    return (
+      await this.axios.get<FileRecordVariant[]>(
+        `collection-folder/all/${collectionId}/${path}`
       )
     ).data;
   }

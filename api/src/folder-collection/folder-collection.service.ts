@@ -185,6 +185,30 @@ export class FolderCollectionService {
     return [...files, ...folders];
   }
 
+  async listFolderFilesIncludeSubdirectories(
+    collectionId: number,
+    relativePath: string
+  ): Promise<FileRecordVariant[]> {
+    const collection = await this.FindFolder(collectionId);
+
+    if (collection === null) {
+      throw new UnknownFolderException();
+    }
+
+    const collectionEntry = PathHelper.relativeToMedia(collection.folder);
+    const targetFolder = path.join(collectionEntry, relativePath);
+
+    const files = (
+      await this.fileAccessService.listIncludeSubdiretories(targetFolder)
+    ).map<FileRecordVariant>((x) => ({
+      type: 'file',
+      ...x,
+      filename: `${collectionId}/${path.relative(collectionEntry, x.filename)}`
+    }));
+
+    return files;
+  }
+
   private IsFolderInsideMedia(folder: string): boolean {
     const media = path.join(process.cwd(), 'media');
 

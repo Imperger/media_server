@@ -1,4 +1,9 @@
-import { Delete, Folder, Menu as MenuIcon } from '@mui/icons-material';
+import {
+  Delete as DeleteIcon,
+  Folder,
+  Menu as MenuIcon,
+  PlaylistPlay as PlaylistPlayIcon
+} from '@mui/icons-material';
 import {
   Badge,
   Card,
@@ -46,10 +51,17 @@ function FolderCard({ name, size, files, onDelete, preview }: FolderCardProps) {
 
   const pathPrefix = useMemo(() => `${path}${path!.length ? '/' : ''}`, [path]);
 
-  const deleteFolder = async () => {
-    const relativePath = `${pathPrefix}${name}`;
-    const absolutePath = `${id}/${relativePath}`;
+  const relativePath = useMemo(
+    () => `${pathPrefix}${name}`,
+    [pathPrefix, name]
+  );
 
+  const absolutePath = useMemo(
+    () => `${id}/${relativePath}`,
+    [id, relativePath]
+  );
+
+  const deleteFolder = async () => {
     if (await api.deleteFolder(Number.parseInt(id!), relativePath)) {
       await ContentCache.evictFolder(absolutePath);
 
@@ -155,9 +167,15 @@ function FolderCard({ name, size, files, onDelete, preview }: FolderCardProps) {
           'aria-labelledby': 'basic-button'
         }}
       >
+        <MenuItem component={RouterLink} to={`/play-folder/${absolutePath}`}>
+          <ListItemIcon>
+            <PlaylistPlayIcon />
+          </ListItemIcon>
+          <ListItemText>Play</ListItemText>
+        </MenuItem>
         <MenuItem onClick={openDeleteConfirmDialog}>
           <ListItemIcon>
-            <Delete />
+            <DeleteIcon />
           </ListItemIcon>
           <ListItemText>Delete</ListItemText>
         </MenuItem>
