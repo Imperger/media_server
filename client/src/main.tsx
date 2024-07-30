@@ -19,6 +19,10 @@ function Root() {
   const api = new ApiService('/api');
 
   React.useEffect(() => {
+    if (!isSecureContext) {
+      return;
+    }
+
     const listener = (event: MessageEvent) => {
       switch (event.data.type) {
         case 'getOnlineStatus':
