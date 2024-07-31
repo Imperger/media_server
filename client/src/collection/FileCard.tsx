@@ -19,11 +19,16 @@ import {
   Typography
 } from '@mui/material';
 import { useSnackbar } from 'notistack';
-import { MouseEvent, SyntheticEvent, useMemo, useState } from 'react';
+import {
+  MouseEvent,
+  SyntheticEvent,
+  useEffect,
+  useMemo,
+  useState
+} from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 
 import { useAppDispatch } from '../hooks';
-import { ContentCache } from '../lib/content-cache';
 import { formatDuration } from '../lib/format-duration';
 
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
@@ -32,6 +37,8 @@ import FileInfoDialog from './FileInfoDialog';
 import { updateLastWatched } from './store/last-watched';
 
 import { ApiService } from '@/api-service/api-service';
+import { DownloadManager } from '@/download-manager/download-manager';
+import { useDownloadProgress } from '@/download-manager/use-download-progress';
 import { Inversify } from '@/inversify';
 
 export interface FileCardProps {
@@ -48,9 +55,11 @@ export interface FileCardProps {
   onCache: (filename: string, action: 'cache' | 'evict') => void;
 }
 
+type Availability = 'uncached' | 'caching' | 'cached';
+
 interface DownloadMenuProps {
   filename: string;
-  isCached: boolean;
+  availability: Availability;
   onClose: (e: MouseEvent<HTMLElement>) => void;
   onCache: (filename: string, action: 'cache' | 'evict') => void;
 }
@@ -59,7 +68,7 @@ function DownloadMenuItem({
   filename,
   onClose,
   onCache,
-  isCached
+  availability
 }: DownloadMenuProps) {
   const downloadMedia = async (e: MouseEvent<HTMLElement>) => {
     onCache(filename, 'cache');
@@ -71,24 +80,39 @@ function DownloadMenuItem({
     onClose(e);
   };
 
-  return isCached ? (
-    <MenuItem onClick={evictMedia}>
-      <ListItemIcon>
-        <CloudDownloadOutlinedIcon />
-      </ListItemIcon>
-      <ListItemText>Erase</ListItemText>
-    </MenuItem>
-  ) : (
-    <MenuItem onClick={downloadMedia}>
-      <ListItemIcon>
-        <CloudDownloadIcon />
-      </ListItemIcon>
-      <ListItemText>Save</ListItemText>
-    </MenuItem>
-  );
+  switch (availability) {
+    case 'cached':
+      return (
+        <MenuItem onClick={evictMedia}>
+          <ListItemIcon>
+            <CloudDownloadOutlinedIcon />
+          </ListItemIcon>
+          <ListItemText>Erase</ListItemText>
+        </MenuItem>
+      );
+    case 'caching':
+      return (
+        <MenuItem disabled={true}>
+          <ListItemIcon>
+            <CloudDownloadIcon />
+          </ListItemIcon>
+          <ListItemText>Saving...</ListItemText>
+        </MenuItem>
+      );
+    case 'uncached':
+      return (
+        <MenuItem onClick={downloadMedia}>
+          <ListItemIcon>
+            <CloudDownloadIcon />
+          </ListItemIcon>
+          <ListItemText>Save</ListItemText>
+        </MenuItem>
+      );
+  }
 }
 
 const api = Inversify.get(ApiService);
+const downloadManager = Inversify.get(DownloadManager);
 
 function FileCard(props: FileCardProps) {
   const baseURL = import.meta.env.BASE_URL;
@@ -99,9 +123,6 @@ function FileCard(props: FileCardProps) {
   const [fileInfoDialogOpened, setFileInfoDialogOpened] = useState(false);
   const [deleteConfirmDialogOpened, setDeleteConfirmDialogOpened] =
     useState(false);
-  const [downloadProgress, setDownloadProgress] = useState(0);
-
-  const isDownloading = useMemo(() => downloadProgress > 0, [downloadProgress]);
 
   const openMenu = (e: MouseEvent<HTMLElement>) => {
     e.preventDefault();
@@ -115,15 +136,31 @@ function FileCard(props: FileCardProps) {
     [props.filename]
   );
 
+  const downloadProgress = useDownloadProgress(videoUrl);
+
+  useEffect(
+    () =>
+      void (downloadProgress === 1 && props.onCache(props.filename, 'cache')),
+    [downloadProgress]
+  );
+
+  const isDownloading = useMemo(() => downloadProgress > 0, [downloadProgress]);
+
+  const availability: Availability = props.isCached
+    ? 'cached'
+    : isDownloading
+      ? 'caching'
+      : 'uncached';
+
   const onCache = async (filename: string, action: 'cache' | 'evict') => {
     switch (action) {
       case 'cache':
         {
           try {
-            await ContentCache.cacheFile(videoUrl, (x) =>
-              setDownloadProgress(x)
-            );
-            await ContentCache.cacheFile(props.preview);
+            await downloadManager.download({
+              mediaUrl: videoUrl,
+              coverUrl: props.preview
+            });
 
             enqueueSnackbar(
               <>
@@ -137,7 +174,6 @@ function FileCard(props: FileCardProps) {
               }
             );
 
-            setDownloadProgress(0);
             props.onCache(filename, 'cache');
           } catch (e) {
             console.error(e);
@@ -148,8 +184,10 @@ function FileCard(props: FileCardProps) {
       case 'evict':
         {
           try {
-            await ContentCache.evictFile(videoUrl);
-            await ContentCache.evictFile(props.preview);
+            await downloadManager.delete({
+              mediaUrl: videoUrl,
+              coverUrl: props.preview
+            });
 
             props.onCache(filename, 'evict');
           } catch (e) {
@@ -296,7 +334,7 @@ function FileCard(props: FileCardProps) {
       >
         <DownloadMenuItem
           filename={props.filename}
-          isCached={props.isCached}
+          availability={availability}
           onCache={onCache}
           onClose={closeMenu}
         />

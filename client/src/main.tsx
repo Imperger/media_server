@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import { ThemeProvider } from '@mui/material';
+import { SnackbarProvider } from 'notistack';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';
@@ -60,7 +61,9 @@ function Root() {
     <React.StrictMode>
       <Provider store={store}>
         <ThemeProvider theme={Theme}>
-          <RouterProvider router={Router} />
+          <SnackbarProvider maxSnack={3}>
+            <RouterProvider router={Router} />
+          </SnackbarProvider>
         </ThemeProvider>
       </Provider>
     </React.StrictMode>
