@@ -23,7 +23,7 @@ import {
   FolderContentRecord,
   FolderMetainfo
 } from '../api-service/api-service';
-import { useOnline } from '../api-service/useOnline';
+import { useOnline } from '../api-service/use-online';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { useTitle } from '../layout/TitleContext';
 import { ArrayHelper } from '../lib/ArrayHelper';

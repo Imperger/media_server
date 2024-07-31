@@ -27,7 +27,7 @@ import {
 } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { useOnline } from '../api-service/useOnline';
+import { useOnline } from '../api-service/use-online';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { ContentCache } from '../lib/content-cache';
 import { formatDuration } from '../lib/format-duration';

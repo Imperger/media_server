@@ -10,7 +10,7 @@ import { SnackbarProvider } from 'notistack';
 import { useMemo, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 
-import { useOnline } from '../api-service/useOnline';
+import { useOnline } from '../api-service/use-online';
 
 import SidebarMenu from './SidebarMenu';
 import { TitleContext } from './TitleContext';
