@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 
-import { useApiService } from './api-context';
+import { ApiService } from './api-service';
+
+import { Inversify } from '@/inversify';
+
+const api = Inversify.get(ApiService);
 
 export function useOnline() {
-  const api = useApiService();
   const [isOnline, setIsOnline] = useState(false);
 
   useEffect(() => {

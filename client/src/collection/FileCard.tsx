@@ -22,7 +22,6 @@ import { useSnackbar } from 'notistack';
 import { MouseEvent, SyntheticEvent, useMemo, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 
-import { useApiService } from '../api-service/api-context';
 import { useAppDispatch } from '../hooks';
 import { ContentCache } from '../lib/content-cache';
 import { formatDuration } from '../lib/format-duration';
@@ -31,6 +30,9 @@ import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 import styles from './file-card.module.css';
 import FileInfoDialog from './FileInfoDialog';
 import { updateLastWatched } from './store/last-watched';
+
+import { ApiService } from '@/api-service/api-service';
+import { Inversify } from '@/inversify';
 
 export interface FileCardProps {
   filename: string;
@@ -86,9 +88,10 @@ function DownloadMenuItem({
   );
 }
 
+const api = Inversify.get(ApiService);
+
 function FileCard(props: FileCardProps) {
   const baseURL = import.meta.env.BASE_URL;
-  const api = useApiService();
   const { enqueueSnackbar } = useSnackbar();
   const dispatch = useAppDispatch();
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);

@@ -1,6 +1,11 @@
 import axios, { AxiosInstance, isAxiosError } from 'axios';
+import { inject, injectable } from 'inversify';
+
+import { Inversify } from '../inversify';
 
 import { LiveFeed } from './live-feed';
+
+import { ConfigService } from '@/config';
 
 export interface CreateCollectionResult {
   id: number;
@@ -64,12 +69,13 @@ export interface FolderMetainfo {
   syncedAt: number;
 }
 
+@injectable()
 export class ApiService {
   private readonly axios: AxiosInstance;
   public readonly liveFeed: LiveFeed;
 
-  constructor(baseURL: string) {
-    this.axios = axios.create({ baseURL });
+  constructor(@inject(ConfigService) config: ConfigService) {
+    this.axios = axios.create({ baseURL: config.apiEntry });
     this.liveFeed = new LiveFeed();
   }
 
@@ -157,3 +163,5 @@ export class ApiService {
     return true;
   }
 }
+
+Inversify.bind(ApiService).toSelf().inSingletonScope();

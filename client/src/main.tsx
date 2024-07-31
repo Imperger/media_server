@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { ThemeProvider } from '@mui/material';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom/client';
@@ -9,14 +10,14 @@ import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 
 import './index.css';
-import { ApiContext } from './api-service/api-context';
 import { ApiService } from './api-service/api-service';
+import { Inversify } from './inversify';
 import Router from './router';
 import { store } from './store';
 import { Theme } from './theme';
 
 function Root() {
-  const api = new ApiService('/api');
+  const api = Inversify.get(ApiService);
 
   React.useEffect(() => {
     if (!isSecureContext) {
@@ -59,9 +60,7 @@ function Root() {
     <React.StrictMode>
       <Provider store={store}>
         <ThemeProvider theme={Theme}>
-          <ApiContext.Provider value={api}>
-            <RouterProvider router={Router} />
-          </ApiContext.Provider>
+          <RouterProvider router={Router} />
         </ThemeProvider>
       </Provider>
     </React.StrictMode>

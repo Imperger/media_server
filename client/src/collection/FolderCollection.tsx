@@ -18,8 +18,8 @@ import {
 import { useEffect, useMemo, useState, MouseEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
-import { useApiService } from '../api-service/api-context';
 import {
+  ApiService,
   FolderContentRecord,
   FolderMetainfo
 } from '../api-service/api-service';
@@ -37,6 +37,8 @@ import FileCard from './FileCard';
 import styles from './folder-collection.module.css';
 import FolderCard from './FolderCard';
 import { SortRule, updateSortRule } from './store/sort-rule';
+
+import { Inversify } from '@/inversify';
 
 interface BreadcrumbItem {
   caption: string;
@@ -159,12 +161,13 @@ function extractKey(obj: FolderContentRecord, rule: SortRule) {
   }
 }
 
+const api = Inversify.get(ApiService);
+
 function FolderCollection() {
   const baseURL = import.meta.env.BASE_URL;
   const { id, '*': path } = useParams();
   const sortRule = useAppSelector((state) => state.folderCollectionSortRule);
   const dispatch = useAppDispatch();
-  const api = useApiService();
   const { setTitle } = useTitle();
   const isOnline = useOnline();
   const [content, setContent] = useState<FolderContentRecord[]>([]);

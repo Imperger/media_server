@@ -1,8 +1,7 @@
 import prettyBytes from 'pretty-bytes';
 import { useEffect, useMemo, useState } from 'react';
 
-import { useApiService } from '../api-service/api-context';
-import { FileRecord } from '../api-service/api-service';
+import { ApiService, FileRecord } from '../api-service/api-service';
 import FileCard from '../collection/FileCard';
 import { useTitle } from '../layout/TitleContext';
 import { ArrayHelper } from '../lib/ArrayHelper';
@@ -12,9 +11,12 @@ import { ContentCache } from '../lib/content-cache';
 import { AsyncExceptionTrap } from '../lib/exception-trap';
 import { parseFilename } from '../lib/parse-filename';
 
+import { Inversify } from '@/inversify';
+
+const api = Inversify.get(ApiService);
+
 function OfflineCollection() {
   const baseURL = import.meta.env.BASE_URL;
-  const api = useApiService();
   const { setTitle } = useTitle();
   const [savedContent, setSavedContent] = useState<FileRecord[]>([]);
 

@@ -3,8 +3,8 @@ import { HttpStatusCode, isAxiosError } from 'axios';
 import { useSnackbar } from 'notistack';
 import { useCallback, useEffect, useState } from 'react';
 
-import { useApiService } from '../api-service/api-context';
 import {
+  ApiService,
   CollectionFolder,
   CollectionRecord,
   CollectionType
@@ -19,6 +19,8 @@ import styles from './dashboard.module.css';
 import FolderCollectionCard from './FolderCollectionCard';
 import { CreateCollectionParameters } from './type';
 
+import { Inversify } from '@/inversify';
+
 interface FolderSyncProgress {
   id: number;
   size: number;
@@ -31,9 +33,9 @@ interface FolderSyncComplete {
   addedFiles: number;
 }
 
-function Dashboard() {
-  const api = useApiService();
+const api = Inversify.get(ApiService);
 
+function Dashboard() {
   const { setTitle } = useTitle();
   const [collectionList, setCollectionList] = useState<CollectionRecord[]>([]);
   const [createCollectionDialogOpened, setCreateCollectionDialogOpened] =

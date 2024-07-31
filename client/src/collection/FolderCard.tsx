@@ -21,13 +21,15 @@ import prettyBytes from 'pretty-bytes';
 import { useMemo, MouseEvent, useState, SyntheticEvent } from 'react';
 import { Link as RouterLink, useParams } from 'react-router-dom';
 
-import { useApiService } from '../api-service/api-context';
 import { useAppDispatch } from '../hooks';
 import { ContentCache } from '../lib/content-cache';
 
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 import styles from './folder-card.module.css';
 import { resetLastWatched } from './store/last-watched';
+
+import { ApiService } from '@/api-service/api-service';
+import { Inversify } from '@/inversify';
 
 export interface FolderCardProps {
   name: string;
@@ -37,9 +39,10 @@ export interface FolderCardProps {
   onDelete: (name: string) => void;
 }
 
+const api = Inversify.get(ApiService);
+
 function FolderCard({ name, size, files, onDelete, preview }: FolderCardProps) {
   const baseURL = import.meta.env.BASE_URL;
-  const api = useApiService();
   const { id, '*': path } = useParams();
   const { enqueueSnackbar } = useSnackbar();
   const dispatch = useAppDispatch();

@@ -27,7 +27,6 @@ import {
 } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { useApiService } from '../api-service/api-context';
 import { useOnline } from '../api-service/useOnline';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { ContentCache } from '../lib/content-cache';
@@ -42,6 +41,9 @@ import { RWState } from '../lib/rw-state';
 
 import styles from './player.module.css';
 import { updateVolume } from './store/player';
+
+import { ApiService } from '@/api-service/api-service';
+import { Inversify } from '@/inversify';
 
 interface RewindStepProperty {
   step: number;
@@ -222,6 +224,8 @@ export interface PlayerProps {
   playMode: PlayMode;
 }
 
+const api = Inversify.get(ApiService);
+
 function Player({ playMode }: PlayerProps) {
   const hideControlsTimeout = 5000;
   const rewindMap: RewindStepProperty[] = [
@@ -243,7 +247,6 @@ function Player({ playMode }: PlayerProps) {
   const baseURL = import.meta.env.BASE_URL;
   const { id, '*': filename } = useParams();
   const collectionId = Number.parseInt(id!);
-  const api = useApiService();
   const isOnline = useOnline();
   const dispatch = useAppDispatch();
   const playerSettings = useAppSelector((state) => state.settings.player);
