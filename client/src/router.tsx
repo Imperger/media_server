@@ -4,7 +4,7 @@ import FolderCollection from './collection/FolderCollection';
 import Dashboard from './dashboard/Dashboard';
 import Layout from './layout/Layout';
 import OfflineCollection from './offline-collection/OfflineCollection';
-import Player from './player/Player';
+import Player from './player/player';
 import Settings from './settings/Settings';
 
 const router = createBrowserRouter([

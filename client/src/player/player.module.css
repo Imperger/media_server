@@ -10,37 +10,3 @@
     width: 100%;
     height: 100%;
 }
-
-.controls {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-}
-
-.seek {
-    height: 3px;
-    border-width: 8px 0;
-    border-color: #ffffff00;
-    border-style:solid;
-    background-clip: padding-box;
-    background-color: #55555ac1;
-    cursor: pointer;
-}
-
-.seek:hover {
-    height:7px;
-    transform: translateY(2px);
-}
-
-.seekProgress {
-    height: 100%;
-    background-color: #ff0100;
-}
-
-.buttons {
-    align-items: center;
-}
-
-.time {
-    padding-left: 15px;
-}
