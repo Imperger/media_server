@@ -1,6 +1,13 @@
 import { Box } from '@mui/material';
-import { KeyboardEvent, TouchEvent, useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import {
+  KeyboardEvent,
+  TouchEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from 'react';
+import { Location, useLocation, useParams } from 'react-router-dom';
 
 import { useOnline } from '../api-service/use-online';
 import { useAppDispatch, useAppSelector } from '../hooks';
@@ -15,10 +22,13 @@ import { reinterpret_cast } from '../lib/reinterpret-cast';
 import Controls from './controls';
 import { PlayMode } from './play-mode';
 import styles from './player.module.css';
+import ScrubbingOverlay from './scrubbing-overlay';
 import { updateVolume } from './store/player';
 
 import { ApiService } from '@/api-service/api-service';
 import { Inversify } from '@/inversify';
+import { ArrayHelper } from '@/lib/ArrayHelper';
+import { useResize } from '@/lib/use-resize';
 
 interface RewindStepProperty {
   step: number;
@@ -27,6 +37,15 @@ interface RewindStepProperty {
 
 export interface PlayerProps {
   playMode: PlayMode;
+}
+
+interface LocationState {
+  assetPrefix?: string;
+}
+
+interface PlaylistEntry {
+  url: string;
+  assetPrefix: string;
 }
 
 const api = Inversify.get(ApiService);
@@ -52,8 +71,11 @@ function Player({ playMode }: PlayerProps) {
   const baseURL = import.meta.env.BASE_URL;
   const { id, '*': filename } = useParams();
   const collectionId = Number.parseInt(id!);
+  const windowSize = useResize();
   const isOnline = useOnline();
   const dispatch = useAppDispatch();
+  const location: Location<LocationState> = useLocation();
+
   const playerSettings = useAppSelector((state) => state.settings.player);
   const containerRef = useRef<HTMLElement>(null);
   const playerRef = useRef<HTMLVideoElement>(null);
@@ -64,11 +86,26 @@ function Player({ playMode }: PlayerProps) {
   const [controlsShown, setControlsShown] = useState(true);
   const [hideTrigger, setHideTrigger] = useState(0);
 
-  const [playlist, setPlaylist] = useState<string[]>([]);
-  const [availablePlaylist, setAvailablePlaylist] = useState<string[]>([]);
+  const [aspectRatio, setAspectRatio] = useState(1);
+
+  const [isScrubblingShow, setIsScrubblingShow] = useState(false);
+  const [scrubbingTimeNormal, setScrubbingTimeNormal] = useState(0);
+
+  const [playlist, setPlaylist] = useState<PlaylistEntry[]>([]);
+  const [availablePlaylist, setAvailablePlaylist] = useState<PlaylistEntry[]>(
+    []
+  );
   const [playingIdx, setPlayingIdx] = useState(0);
   const hasSrc = availablePlaylist.length > 0;
-  const src = availablePlaylist[playingIdx];
+  const src = hasSrc ? availablePlaylist[playingIdx].url : '';
+
+  const scrubbingStripeUrl = useMemo(
+    () =>
+      hasSrc
+        ? `${baseURL}api/file/scrubbing/${availablePlaylist[playingIdx].assetPrefix}.jpg`
+        : '',
+    [availablePlaylist, playingIdx]
+  );
 
   useEffect(() => {
     if (isOnline) {
@@ -78,9 +115,15 @@ function Player({ playMode }: PlayerProps) {
 
     let cancelator = false;
     const fillAvailablePlaylist = async () => {
-      const cachedFiles = await ContentCache.keep(playlist.map((x) => x));
+      const cachedFiles = await ContentCache.keep(playlist.map((x) => x.url));
       if (!cancelator) {
-        setAvailablePlaylist(cachedFiles);
+        setAvailablePlaylist(
+          ArrayHelper.mergeWithFiltered(
+            playlist,
+            cachedFiles,
+            (o, f) => o.url === f
+          )
+        );
       }
     };
     fillAvailablePlaylist();
@@ -168,6 +211,25 @@ function Player({ playMode }: PlayerProps) {
     }
   };
 
+  const onLoadMetadata = () => {
+    if (playerRef.current === null) {
+      return;
+    }
+
+    setAspectRatio(
+      playerRef.current.videoWidth / playerRef.current.videoHeight
+    );
+  };
+
+  const onScrubbingSeek = (currentTimeNormal: number) => {
+    setScrubbingTimeNormal(currentTimeNormal);
+    setIsScrubblingShow(true);
+  };
+
+  const onScrubbingSeekEnd = () => {
+    setIsScrubblingShow(false);
+  };
+
   useEffect(() => {
     setPlayTime(0);
     setDuration(0);
@@ -179,7 +241,12 @@ function Player({ playMode }: PlayerProps) {
 
     switch (playMode) {
       case 'file':
-        setPlaylist([`${baseURL}api/file/content/${collectionId}/${filename}`]);
+        setPlaylist([
+          {
+            url: `${baseURL}api/file/content/${collectionId}/${filename}`,
+            assetPrefix: location.state.assetPrefix!
+          }
+        ]);
         break;
       case 'folder':
         {
@@ -190,7 +257,10 @@ function Player({ playMode }: PlayerProps) {
             );
 
             setPlaylist(
-              files.map((x) => `${baseURL}api/file/content/${x.filename}`)
+              files.map((x) => ({
+                url: `${baseURL}api/file/content/${x.filename}`,
+                assetPrefix: x.assetPrefix
+              }))
             );
           };
           fetchFolderFileList();
@@ -227,6 +297,62 @@ function Player({ playMode }: PlayerProps) {
     playerRef.current.play();
   }, [playingIdx]);
 
+  const scrubbingOverlayWidth = useMemo(() => {
+    if (playerRef.current === null) {
+      return 0;
+    }
+
+    const playerBoundingBox = playerRef.current.getBoundingClientRect();
+
+    const playerAspectRatio =
+      playerBoundingBox.width / playerBoundingBox.height;
+
+    return playerAspectRatio > aspectRatio
+      ? aspectRatio * playerBoundingBox.height
+      : playerBoundingBox.width;
+  }, [aspectRatio, windowSize]);
+
+  const scrubbingOverlayHeight = useMemo(() => {
+    if (playerRef.current === null) {
+      return 0;
+    }
+
+    const playerBoundingBox = playerRef.current.getBoundingClientRect();
+    const playerAspectRatio =
+      playerBoundingBox.width / playerBoundingBox.height;
+    return playerAspectRatio > aspectRatio
+      ? playerBoundingBox.height
+      : playerBoundingBox.width / aspectRatio;
+  }, [aspectRatio, windowSize]);
+
+  const scrubbingOverlayX = useMemo(() => {
+    if (playerRef.current === null) {
+      return 0;
+    }
+
+    const playerBoundingBox = playerRef.current.getBoundingClientRect();
+    const playerAspectRatio =
+      playerBoundingBox.width / playerBoundingBox.height;
+
+    return playerAspectRatio > aspectRatio
+      ? (playerBoundingBox.width - scrubbingOverlayWidth) / 2
+      : 0;
+  }, [aspectRatio, scrubbingOverlayWidth, windowSize]);
+
+  const scrubbingOverlayY = useMemo(() => {
+    if (playerRef.current === null) {
+      return 0;
+    }
+
+    const playerBoundingBox = playerRef.current.getBoundingClientRect();
+    const playerAspectRatio =
+      playerBoundingBox.width / playerBoundingBox.height;
+
+    return playerAspectRatio > aspectRatio
+      ? 0
+      : (playerBoundingBox.height - playerBoundingBox.width / aspectRatio) / 2;
+  }, [aspectRatio, windowSize]);
+
   return (
     <Box
       ref={containerRef}
@@ -252,8 +378,22 @@ function Player({ playMode }: PlayerProps) {
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
         onTouchCancel={onTouchCancel}
+        onCanPlay={onLoadMetadata}
         autoPlay
       ></video>
+      <ScrubbingOverlay
+        sx={{
+          left: `${scrubbingOverlayX}px`,
+          top: `${scrubbingOverlayY}px`,
+          width: `${scrubbingOverlayWidth}px`,
+          height: `${scrubbingOverlayHeight}px`
+        }}
+        className={styles.scrubbingOverlay}
+        show={isScrubblingShow}
+        scrubbingStripeUrl={scrubbingStripeUrl}
+        videoAspectRatio={aspectRatio}
+        currentTimeNormal={scrubbingTimeNormal}
+      />
       <Controls
         playMode={playMode}
         shown={controlsShown}
@@ -264,7 +404,9 @@ function Player({ playMode }: PlayerProps) {
         play={play}
         togglePlay={togglePlay}
         onVolume={onVolume}
-        playlist={availablePlaylist}
+        onScrubbingSeek={onScrubbingSeek}
+        onScrubbingSeekEnd={onScrubbingSeekEnd}
+        playlist={availablePlaylist.map((x) => x.url)}
         playingIdx={playingIdx}
         setPlayingIdx={setPlayingIdx}
       />

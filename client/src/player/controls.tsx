@@ -34,6 +34,8 @@ interface ControlsProps extends RWState<'playingIdx', number> {
   play: boolean;
   togglePlay: () => void;
   onVolume: (volume: number) => void;
+  onScrubbingSeek: (currentTime: number) => void;
+  onScrubbingSeekEnd: () => void;
   playlist: string[];
 }
 
@@ -64,6 +66,8 @@ const Controls = memo(
     play,
     togglePlay,
     onVolume,
+    onScrubbingSeek,
+    onScrubbingSeekEnd,
     playlist,
     playingIdx,
     setPlayingIdx
@@ -111,6 +115,8 @@ const Controls = memo(
           duration={duration}
           playerRef={playerRef}
           togglePlay={togglePlay}
+          onScrubbingSeek={onScrubbingSeek}
+          onScrubbingSeekEnd={onScrubbingSeekEnd}
         />
         <Stack direction={'row'} className={styles.buttons}>
           <IconButton

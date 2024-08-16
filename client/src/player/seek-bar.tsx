@@ -10,6 +10,9 @@ import {
 } from 'react';
 
 import styles from './seek-bar.module.css';
+import { ScrubbingMethod } from './store/player';
+
+import { useAppSelector } from '@/hooks';
 
 type OnSeekMove = (offsetX: number) => void;
 type OnSeekEnd = () => void;
@@ -19,10 +22,27 @@ export interface SeekBarProps {
   duration: number;
   playerRef: RefObject<HTMLVideoElement>;
   togglePlay: () => void;
+  onScrubbingSeek: (currentTime: number) => void;
+  onScrubbingSeekEnd: () => void;
 }
 
 const SeekBar = memo(
-  ({ playTime, duration, playerRef, togglePlay }: SeekBarProps) => {
+  ({
+    playTime,
+    duration,
+    playerRef,
+    togglePlay,
+    onScrubbingSeek,
+    onScrubbingSeekEnd
+  }: SeekBarProps) => {
+    const scrubbingMethodSettings = useAppSelector(
+      (state) => state.settings.player.scrubbing
+    );
+
+    const [scrubbingMethod, setScrubbingMethod] = useState<
+      Exclude<ScrubbingMethod, 'auto'>
+    >(scrubbingMethodSettings === 'auto' ? 'native' : scrubbingMethodSettings);
+
     const [isSeeking, setIsSeeking] = useState(false);
     const [isPlayerSeeking, setIsPlayerSeeking] = useState(false);
     const [isPlayingBeforeSeek, setIsPlayingBeforeSeek] = useState(false);
@@ -31,14 +51,20 @@ const SeekBar = memo(
     const touchIdRef = useRef(-1);
     const onSeekMoveRef = useRef<OnSeekMove>(() => 0);
     const onSeekEndRef = useRef<OnSeekEnd>(() => 0);
+    const [latestSeekOffset, setLatestSeekOffset] = useState(-1);
+
+    const seekStartTime = useRef(0);
+    const thresholdSwitchToStripe = 100;
 
     const seekWidth = useMemo(() => {
       if (seekContainerRef.current === null) {
         return 0;
       }
 
-      return (playTime / duration) * seekContainerRef.current.clientWidth;
-    }, [playTime, duration]);
+      return isSeeking && scrubbingMethod === 'stripe'
+        ? latestSeekOffset
+        : (playTime / duration) * seekContainerRef.current.clientWidth;
+    }, [scrubbingMethod, isSeeking, latestSeekOffset, playTime, duration]);
 
     const seek = (offsetX: number) => {
       if (playerRef.current === null || seekContainerRef.current === null) {
@@ -50,6 +76,12 @@ const SeekBar = memo(
     };
 
     const onSeekStart = (offsetX: number) => {
+      if (scrubbingMethod === 'native') {
+        setLatestSeekOffset(-1);
+      } else if (scrubbingMethod === 'stripe') {
+        setLatestSeekOffset(offsetX);
+      }
+
       setIsSeeking(true);
 
       if (playerRef.current !== null) {
@@ -60,7 +92,9 @@ const SeekBar = memo(
         }
       }
 
-      seek(offsetX);
+      if (scrubbingMethod === 'native') {
+        seek(offsetX);
+      }
     };
 
     const onTouchSeekStart = (e: ReactTouchEvent<HTMLElement>) => {
@@ -73,13 +107,25 @@ const SeekBar = memo(
     };
 
     onSeekMoveRef.current = (offsetX: number) => {
-      if (!isPlayerSeeking && isSeeking) {
-        seek(offsetX);
+      setLatestSeekOffset(offsetX);
+
+      if (scrubbingMethod === 'native') {
+        if (!isPlayerSeeking && isSeeking) {
+          seek(offsetX);
+        }
+      } else if (scrubbingMethod === 'stripe') {
+        if (seekContainerRef.current !== null) {
+          onScrubbingSeek(offsetX / seekContainerRef.current.clientWidth);
+        }
       }
     };
 
     onSeekEndRef.current = () => {
       setIsSeeking(false);
+
+      if (scrubbingMethod === 'stripe') {
+        onScrubbingSeekEnd();
+      }
 
       if (isPlayingBeforeSeek) {
         togglePlay();
@@ -88,7 +134,7 @@ const SeekBar = memo(
 
     const onSeekEnd = () => onSeekEndRef.current();
 
-    const onMouseMove = (e: MouseEvent) => onSeekMoveRef.current(e.offsetX);
+    const onMouseMove = (e: MouseEvent) => onSeekMoveRef.current(e.clientX);
 
     useEffect(() => {
       const document = documentRef.current;
@@ -119,14 +165,48 @@ const SeekBar = memo(
     }, [isSeeking]);
 
     useEffect(() => {
+      if (scrubbingMethod === 'native') {
+        if (!isPlayerSeeking && isSeeking && latestSeekOffset !== -1) {
+          seek(latestSeekOffset);
+          setLatestSeekOffset(-1);
+        }
+      } else if (scrubbingMethod === 'stripe') {
+        if (!isPlayerSeeking && !isSeeking && latestSeekOffset !== -1) {
+          seek(latestSeekOffset);
+          setLatestSeekOffset(-1);
+        }
+      }
+    }, [latestSeekOffset, isPlayerSeeking, isSeeking]);
+
+    useEffect(() => {
       if (playerRef.current === null) {
         return;
       }
 
       const player = playerRef.current;
 
-      const onSeeking = () => setIsPlayerSeeking(true);
-      const onSeeked = () => setIsPlayerSeeking(false);
+      const onSeeking = () => {
+        setIsPlayerSeeking(true);
+
+        if (scrubbingMethodSettings === 'auto') {
+          seekStartTime.current = Date.now();
+        }
+      };
+
+      const onSeeked = () => {
+        setIsPlayerSeeking(false);
+
+        if (scrubbingMethodSettings === 'auto') {
+          const seekTime = Date.now() - seekStartTime.current;
+          if (seekTime > thresholdSwitchToStripe) {
+            if (scrubbingMethod !== 'stripe') {
+              setScrubbingMethod('stripe');
+            }
+          } else if (scrubbingMethod !== 'native') {
+            setScrubbingMethod('native');
+          }
+        }
+      };
 
       player.addEventListener('seeking', onSeeking);
       player.addEventListener('seeked', onSeeked);
@@ -134,7 +214,7 @@ const SeekBar = memo(
         player.removeEventListener('seeked', onSeeked);
         player.removeEventListener('seeking', onSeeking);
       };
-    }, []);
+    }, [scrubbingMethod]);
 
     return (
       <Box

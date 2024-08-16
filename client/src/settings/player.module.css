@@ -1,11 +1,10 @@
 .details {
     display: flex;
     flex-direction: column;
-    max-width: 200px;
 }
 
-.description {
-    white-space: nowrap;
+.propertyDetails {
+    padding-right: 15px;
 }
 
 .volumeSettingsType {
@@ -13,6 +12,11 @@
 }
 
 .volumeSettings {
+    display: flex;
+    flex-direction: row;
+}
+
+.scrubbingSettings {
     display: flex;
     flex-direction: row;
 }

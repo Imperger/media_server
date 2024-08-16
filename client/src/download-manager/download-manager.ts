@@ -6,6 +6,7 @@ import { ContentCache, DownloadProgressListener } from '@/lib/content-cache';
 export interface DownloadableMedia {
   mediaUrl: string;
   coverUrl: string;
+  scrubbingStripUrl: string;
 }
 
 interface DownloadStatus {
@@ -36,6 +37,7 @@ export class DownloadManager {
         this.broadcast(target.mediaUrl, status.progress);
       });
       await ContentCache.cacheFile(target.coverUrl);
+      await ContentCache.cacheFile(target.scrubbingStripUrl);
     } catch (e) {
       console.error(`Failed to download '${target.mediaUrl}'`);
     } finally {
@@ -51,6 +53,7 @@ export class DownloadManager {
   async delete(target: DownloadableMedia): Promise<void> {
     await ContentCache.evictFile(target.mediaUrl);
     await ContentCache.evictFile(target.coverUrl);
+    await ContentCache.evictFile(target.scrubbingStripUrl);
   }
 
   /**

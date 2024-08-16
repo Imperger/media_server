@@ -16,7 +16,6 @@ import { Inversify } from '@/inversify';
 const api = Inversify.get(ApiService);
 
 function OfflineCollection() {
-  const baseURL = import.meta.env.BASE_URL;
   const { setTitle } = useTitle();
   const [savedContent, setSavedContent] = useState<FileRecord[]>([]);
 
@@ -98,12 +97,6 @@ function OfflineCollection() {
     }
   };
 
-  function filePreview(assetPrefix: string): string {
-    return assetPrefix === 'default_preview'
-      ? `${baseURL}img/default_preview.webp`
-      : `${baseURL}api/file/preview/${assetPrefix}.jpg`;
-  }
-
   return (
     <ContentList>
       {sortedContent.map((x) => {
@@ -115,7 +108,7 @@ function OfflineCollection() {
             duration={x.duration}
             width={x.width}
             height={x.height}
-            preview={filePreview(x.assetPrefix)}
+            assetPrefix={x.assetPrefix}
             createdAt={x.createdAt}
             onDelete={() => 0}
             onCache={onCache}

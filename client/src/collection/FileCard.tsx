@@ -47,7 +47,7 @@ export interface FileCardProps {
   duration: number;
   width: number;
   height: number;
-  preview: string;
+  assetPrefix: string;
   createdAt: number;
   isAvailable: boolean;
   isCached: boolean;
@@ -131,6 +131,16 @@ function FileCard(props: FileCardProps) {
     setMenuAnchor(e.currentTarget);
   };
 
+  const preview = useMemo(
+    () => `${baseURL}api/file/preview/${props.assetPrefix}.jpg`,
+    [props.assetPrefix]
+  );
+
+  const scrubbingStripe = useMemo(
+    () => `${baseURL}api/file/scrubbing/${props.assetPrefix}.jpg`,
+    [props.assetPrefix]
+  );
+
   const videoUrl = useMemo(
     () => `${baseURL}api/file/content/${props.filename}`,
     [props.filename]
@@ -159,7 +169,8 @@ function FileCard(props: FileCardProps) {
           try {
             await downloadManager.download({
               mediaUrl: videoUrl,
-              coverUrl: props.preview
+              coverUrl: preview,
+              scrubbingStripUrl: scrubbingStripe
             });
 
             enqueueSnackbar(
@@ -186,7 +197,8 @@ function FileCard(props: FileCardProps) {
           try {
             await downloadManager.delete({
               mediaUrl: videoUrl,
-              coverUrl: props.preview
+              coverUrl: preview,
+              scrubbingStripUrl: scrubbingStripe
             });
 
             props.onCache(filename, 'evict');
@@ -272,6 +284,7 @@ function FileCard(props: FileCardProps) {
         data-index={name}
         component={RouterLink}
         to={`${baseURL}play/${props.filename}`}
+        state={{ assetPrefix: props.assetPrefix }}
         onClick={props.isAvailable ? saveLastWacthed : blockNavigation}
       >
         <Card className={styles.container} style={{ margin: '2px' }}>
@@ -279,7 +292,7 @@ function FileCard(props: FileCardProps) {
             className={previewClassName}
             component="img"
             height="140"
-            image={props.preview}
+            image={preview}
             onError={fallbackToDefaultCover}
           ></CardMedia>
           <PlayArrow

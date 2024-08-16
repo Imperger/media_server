@@ -48,23 +48,36 @@ export class MediaToolService {
   ): Promise<boolean> {
     return (
       (await this.generatePreview(filename, props)) &&
-      (await this.generateTrailer(filename))
+      (await this.generateTrailer(filename)) &&
+      (await this.generateScrubbingStrip(filename, props))
     );
   }
 
   async generatePreview(
-    filename: string,
+    source: string,
     props: GenerateAssetsProps
   ): Promise<boolean> {
     return Ffmpeg.generatePreview(
-      path.join(PathHelper.mediaEntry, filename),
+      path.join(PathHelper.mediaEntry, source),
       props.previewTimepoint,
       path.join(PathHelper.previewEntry, `${props.assetPrefix}.jpg`),
       { overwrite: true }
     );
   }
 
-  async generateTrailer(filename: string): Promise<boolean> {
+  async generateTrailer(src: string): Promise<boolean> {
     return true;
+  }
+
+  async generateScrubbingStrip(
+    source: string,
+    props: GenerateAssetsProps
+  ): Promise<boolean> {
+    return Ffmpeg.generateScrubbingStrip(
+      path.join(PathHelper.mediaEntry, source),
+      { stripWidth: 32768, tiles: 128 },
+      path.join(PathHelper.scrubbingEntry, `${props.assetPrefix}.jpg`),
+      { overwrite: true }
+    );
   }
 }

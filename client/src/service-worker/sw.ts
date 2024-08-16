@@ -142,6 +142,7 @@ registerRoute(({ url }) => {
   const contentEndpoints = [
     '/api/file/content/',
     '/api/file/preview/',
+    '/api/file/scrubbing/',
     '/api/folder/preview/'
   ];
 

@@ -99,6 +99,9 @@ export class FileAccessService {
       await Fs.unlink(
         Path.join(PathHelper.previewEntry, `${assetHash(filename)}.jpg`)
       );
+      await Fs.unlink(
+        Path.join(PathHelper.scrubbingEntry, `${assetHash(filename)}.jpg`)
+      );
     } catch (e) {}
   }
 

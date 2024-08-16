@@ -26,6 +26,7 @@ async function setupConfigFolder() {
     await fs.mkdir(PathHelper.assetsEntry);
     await fs.mkdir(PathHelper.previewEntry);
     await fs.mkdir(PathHelper.trailerEntry);
+    await fs.mkdir(PathHelper.scrubbingEntry);
 
     await fs.copyFile(
       'shema.db',

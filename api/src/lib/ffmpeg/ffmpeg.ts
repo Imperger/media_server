@@ -65,6 +65,11 @@ export interface FfmpegOptions {
   overwrite?: boolean;
 }
 
+export interface ScrubbingStripProps {
+  tiles: number;
+  stripWidth: number;
+}
+
 class TransformToString extends Transform {
   constructor() {
     super({ objectMode: true });
@@ -138,6 +143,46 @@ export class Ffmpeg {
         '1',
         destination
       ]);
+      ffmpeg.once('error', () => resolve(false));
+      ffmpeg.once('exit', () => resolve(true));
+    });
+  }
+
+  /**
+   *
+   * @param source
+   * @param timepoint in seconds
+   * @param destination
+   * @returns
+   */
+  static async generateScrubbingStrip(
+    source: string,
+    options: ScrubbingStripProps,
+    destination: string,
+    props?: FfmpegOptions
+  ): Promise<boolean> {
+    const info = (await this.videoMetadata(source)).streams[0];
+    const totalFrames = Number.parseInt(info.nb_frames);
+    const frameWidth = Math.floor(options.stripWidth / options.tiles);
+
+    return new Promise((resolve, _reject) => {
+      const ffmpeg = spawn(
+        'ffmpeg',
+        [
+          Ffmpeg.overwriteProp(props),
+          '-loglevel',
+          'error',
+          '-i',
+          source,
+          '-vframes',
+          '1',
+          '-vf',
+          `select='not(mod(n\,${Math.floor(totalFrames / options.tiles)}))',scale=${frameWidth}:-1,tile=${options.tiles}x1`,
+          destination
+        ],
+        { detached: true }
+      );
+
       ffmpeg.once('error', () => resolve(false));
       ffmpeg.once('exit', () => resolve(true));
     });

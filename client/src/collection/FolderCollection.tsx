@@ -322,7 +322,7 @@ function FolderCollection() {
                   duration={x.duration}
                   width={x.width}
                   height={x.height}
-                  preview={`${baseURL}api/file/preview/${x.assetPrefix}.jpg`}
+                  assetPrefix={x.assetPrefix}
                   createdAt={x.createdAt}
                   onDelete={onDeleteFile}
                   onCache={onCache}

@@ -88,6 +88,22 @@ export class FileController {
     });
   }
 
+  @Get('scrubbing/:filename')
+  @UseGuards(
+    CacheControlGuard({ maxAge: 300, assetEntry: PathHelper.scrubbingEntry })
+  )
+  @Header('Connection', 'keep-alive')
+  async scrubbing(@Param('filename') filename: string) {
+    const target = Path.join(PathHelper.scrubbingEntry, filename);
+    const stream = await this.fileAccessService.createContentStream(target);
+    const stat = await Fs.stat(target);
+
+    return new StreamableFile(stream, {
+      type: this.contentType(filename),
+      length: stat.size
+    });
+  }
+
   @Delete(':collectionId/*')
   async delete(
     @Param('collectionId', ParseIntPipe) collectionId: number,

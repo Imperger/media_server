@@ -10,8 +10,11 @@ interface VolumeState {
   value: number;
 }
 
+export type ScrubbingMethod = 'auto' | 'native' | 'stripe';
+
 export interface PlayerState {
   volume: VolumeState;
+  scrubbing: ScrubbingMethod;
 }
 
 export const playerSlice = createSlice<
@@ -22,12 +25,18 @@ export const playerSlice = createSlice<
 >({
   name: 'playerSettings',
   initialState: {
-    volume: { type: 'previous', value: 1 }
+    volume: { type: 'previous', value: 1 },
+    scrubbing: 'auto'
   },
   reducers: {
     updateVolume: (state, action: PayloadAction<VolumeState>) => {
       state.volume.type = action.payload.type;
       state.volume.value = action.payload.value;
+
+      localStorage.setItem('playerSettings', JSON.stringify(state));
+    },
+    updateScubbingMethod: (state, action: PayloadAction<ScrubbingMethod>) => {
+      state.scrubbing = action.payload;
 
       localStorage.setItem('playerSettings', JSON.stringify(state));
     }
@@ -38,12 +47,12 @@ export function restorePlayerSettings(): PlayerState {
   const settingsStr = localStorage.getItem('playerSettings');
 
   if (settingsStr === null) {
-    return { volume: { type: 'previous', value: 1 } };
+    return { volume: { type: 'previous', value: 1 }, scrubbing: 'auto' };
   }
 
   return JSON.parse(settingsStr);
 }
 
-export const { updateVolume } = playerSlice.actions;
+export const { updateVolume, updateScubbingMethod } = playerSlice.actions;
 
 export default playerSlice.reducer;

@@ -13,7 +13,11 @@ import {
 import { useMemo, useState } from 'react';
 
 import { useAppDispatch, useAppSelector } from '../hooks';
-import { updateVolume } from '../player/store/player';
+import {
+  ScrubbingMethod,
+  updateScubbingMethod,
+  updateVolume
+} from '../player/store/player';
 
 import styles from './player.module.css';
 
@@ -38,6 +42,18 @@ function Player() {
     }
 
     return playerSettings.volume.type;
+  };
+
+  const [scrubbingMethod, setScrubbingMethod] = useState<ScrubbingMethod>(
+    playerSettings.scrubbing
+  );
+
+  const onScrubbingMethodChanged = (e: SelectChangeEvent<ScrubbingMethod>) => {
+    const method = e.target.value as ScrubbingMethod;
+
+    setScrubbingMethod(method);
+
+    dispatch(updateScubbingMethod(method));
   };
 
   const [volumeType, setVolumeType] = useState<VolumeType>(getVolumeType());
@@ -83,6 +99,31 @@ function Player() {
       </AccordionSummary>
       <AccordionDetails className={styles.details}>
         <Typography sx={{ fontWeight: 'bold' }} variant="h6" gutterBottom>
+          Scrubbing
+        </Typography>
+        <Typography variant="subtitle1">
+          Sets the video scrubbing method
+        </Typography>
+        <Typography variant="body2" className={styles.propertyDetails}>
+          Native: Uses a frame from the video, preserving the original quality
+          but might result in slower responsiveness. Strip: Offers lower quality
+          but provides immediate responsiveness. Auto: Dynamically switches
+          between the two options above.
+        </Typography>
+        <Box className={styles.scrubbingSettings}>
+          <Select
+            labelId="scrubbing-settings-label"
+            size="small"
+            value={scrubbingMethod}
+            onChange={onScrubbingMethodChanged}
+          >
+            <MenuItem value={'auto'}>Auto</MenuItem>
+            <MenuItem value={'native'}>Native</MenuItem>
+            <MenuItem value={'stripe'}>Stripe</MenuItem>
+          </Select>
+        </Box>
+
+        <Typography sx={{ fontWeight: 'bold' }} variant="h6" gutterBottom>
           Volume
         </Typography>
         <Typography variant="subtitle1" className={styles.description}>
@@ -91,7 +132,6 @@ function Player() {
         <Box className={styles.volumeSettings}>
           <Select
             labelId="volume-settings-label"
-            id="demo-simple-select"
             size="small"
             className={styles.volumeSettingsType}
             value={volumeType}

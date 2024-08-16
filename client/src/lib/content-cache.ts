@@ -85,7 +85,7 @@ export class ContentCache {
 
     return (await Promise.all(urls.map((x) => cache.match(encodeURI(x)))))
       .filter((x) => x !== undefined)
-      .map((x) => ContentCache.castToPathname(x));
+      .map((x) => decodeURI(ContentCache.castToPathname(x)));
   }
 
   static async filterContent(

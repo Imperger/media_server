@@ -34,6 +34,10 @@ export class PathHelper {
     return Path.join(this.assetsEntry, 'trailer');
   }
 
+  static get scrubbingEntry(): string {
+    return Path.join(this.assetsEntry, 'scrubbing');
+  }
+
   static relativeToMedia(absolutePath: string): string {
     return Path.relative(PathHelper.mediaEntry, absolutePath);
   }
