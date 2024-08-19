@@ -241,12 +241,28 @@ function Player({ playMode }: PlayerProps) {
 
     switch (playMode) {
       case 'file':
-        setPlaylist([
-          {
-            url: `${baseURL}api/file/content/${collectionId}/${filename}`,
-            assetPrefix: location.state.assetPrefix!
-          }
-        ]);
+        {
+          const initPlaylist = async () => {
+            const src = `${baseURL}api/file/content/${collectionId}/${filename}`;
+
+            const extractAssetPrefix = async () =>
+              (await fetch(src, { method: 'HEAD' })).headers.get(
+                'asset-prefix'
+              )!;
+
+            setPlaylist([
+              {
+                url: src,
+                assetPrefix:
+                  location.state === null
+                    ? await extractAssetPrefix()
+                    : location.state.assetPrefix!
+              }
+            ]);
+          };
+
+          initPlaylist();
+        }
         break;
       case 'folder':
         {
