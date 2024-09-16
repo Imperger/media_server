@@ -108,6 +108,7 @@ export class FolderAccessService {
     stats: AtLeastOne<IncreaseStats>
   ): Promise<void> {
     await this.increaseStat(path, stats);
+
     for (const parent of PathHelper.parents(collectionRoot, path)) {
       await this.increaseStat(parent, { ...stats });
     }

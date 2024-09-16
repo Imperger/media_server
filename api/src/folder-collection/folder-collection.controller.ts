@@ -15,7 +15,7 @@ import {
   FolderContentRecord
 } from './folder-collection.service';
 
-import { CreateCollectionDto } from '@/folder-collection/dto/create-collection.dts';
+import { CreateCollectionDto } from '@/folder-collection/dto/create-collection.dto';
 
 interface MetainfoResult {
   collectionId: string;

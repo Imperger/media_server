@@ -4,7 +4,7 @@ import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 
-import { CreateCollectionDto } from './dto/create-collection.dts';
+import { CreateCollectionDto } from './dto/create-collection.dto';
 import {
   InvalidFolderPathException,
   NonUniqueCollectionIdException,

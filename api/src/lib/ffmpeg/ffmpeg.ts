@@ -132,7 +132,7 @@ export class Ffmpeg {
   ): Promise<boolean> {
     return new Promise((resolve, _reject) => {
       const ffmpeg = spawn('ffmpeg', [
-        Ffmpeg.overwriteProp(props),
+        ...Ffmpeg.overwriteProp(props),
         '-loglevel',
         'error',
         '-ss',
@@ -169,7 +169,7 @@ export class Ffmpeg {
       const ffmpeg = spawn(
         'ffmpeg',
         [
-          Ffmpeg.overwriteProp(props),
+          ...Ffmpeg.overwriteProp(props),
           '-loglevel',
           'error',
           '-i',
@@ -188,7 +188,7 @@ export class Ffmpeg {
     });
   }
 
-  private static overwriteProp(props?: FfmpegOptions): string {
-    return props?.overwrite === true ? '-y' : '';
+  private static overwriteProp(props?: FfmpegOptions): string[] {
+    return props?.overwrite === true ? ['-y'] : [];
   }
 }
