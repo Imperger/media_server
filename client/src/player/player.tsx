@@ -37,6 +37,8 @@ interface RewindStepProperty {
 
 export interface PlayerProps {
   playMode: PlayMode;
+  filename?: string;
+  onInit?: (ref: HTMLVideoElement) => void;
 }
 
 interface LocationState {
@@ -50,7 +52,7 @@ interface PlaylistEntry {
 
 const api = Inversify.get(ApiService);
 
-function Player({ playMode }: PlayerProps) {
+function Player({ playMode, filename: filenameProp, onInit }: PlayerProps) {
   const hideControlsTimeout = 5000;
   const rewindMap: RewindStepProperty[] = [
     { step: 150, touchMoveThreshold: 150 },
@@ -71,6 +73,7 @@ function Player({ playMode }: PlayerProps) {
   const baseURL = import.meta.env.BASE_URL;
   const { id, '*': filename } = useParams();
   const collectionId = Number.parseInt(id!);
+  const absolutePath = filename ? `${collectionId}/${filename}` : filenameProp;
   const windowSize = useResize();
   const isOnline = useOnline();
   const dispatch = useAppDispatch();
@@ -237,13 +240,15 @@ function Player({ playMode }: PlayerProps) {
 
     if (playerRef.current !== null) {
       playerRef.current.volume = playerSettings.volume.value;
+
+      onInit && onInit(playerRef.current);
     }
 
     switch (playMode) {
       case 'file':
         {
           const initPlaylist = async () => {
-            const src = `${baseURL}api/file/content/${collectionId}/${filename}`;
+            const src = `${baseURL}api/file/content/${absolutePath}`;
 
             const extractAssetPrefix = async () =>
               (await fetch(src, { method: 'HEAD' })).headers.get(

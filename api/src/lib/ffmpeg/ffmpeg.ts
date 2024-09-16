@@ -70,6 +70,13 @@ export interface ScrubbingStripProps {
   stripWidth: number;
 }
 
+export type Seconds = number;
+
+export interface ClipBoundary {
+  begin: Seconds;
+  end: Seconds;
+}
+
 class TransformToString extends Transform {
   constructor() {
     super({ objectMode: true });
@@ -179,6 +186,39 @@ export class Ffmpeg {
           '-vf',
           `select='not(mod(n\,${Math.floor(totalFrames / options.tiles)}))',scale=${frameWidth}:-1,tile=${options.tiles}x1`,
           destination
+        ],
+        { detached: true }
+      );
+
+      ffmpeg.once('error', () => resolve(false));
+      ffmpeg.once('exit', () => resolve(true));
+    });
+  }
+
+  static async makeClip(
+    input: string,
+    boundary: ClipBoundary,
+    output: string,
+    props?: FfmpegOptions
+  ): Promise<boolean> {
+    return new Promise((resolve, _reject) => {
+      const ffmpeg = spawn(
+        'ffmpeg',
+        [
+          ...Ffmpeg.overwriteProp(props),
+          '-loglevel',
+          'error',
+          '-ss',
+          boundary.begin.toString(),
+          '-to',
+          boundary.end.toString(),
+          '-i',
+          input,
+          '-c:v',
+          'copy',
+          '-c:a',
+          'copy',
+          output
         ],
         { detached: true }
       );

@@ -5,7 +5,8 @@ import {
   PlayArrow,
   CloudDownload as CloudDownloadIcon,
   CloudDownloadOutlined as CloudDownloadOutlinedIcon,
-  DownloadDone as DownloadDoneIcon
+  DownloadDone as DownloadDoneIcon,
+  OpenWith as OpenWithIcon
 } from '@mui/icons-material';
 import {
   Card,
@@ -34,6 +35,7 @@ import { formatDuration } from '../lib/format-duration';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 import styles from './file-card.module.css';
 import FileInfoDialog from './FileInfoDialog';
+import OpenWithDialog from './open-with-dialog';
 import { updateLastWatched } from './store/last-watched';
 
 import { ApiService } from '@/api-service/api-service';
@@ -123,6 +125,7 @@ function FileCard(props: FileCardProps) {
   const [fileInfoDialogOpened, setFileInfoDialogOpened] = useState(false);
   const [deleteConfirmDialogOpened, setDeleteConfirmDialogOpened] =
     useState(false);
+  const [openWithDialogOpened, setOpenWithDialogOpened] = useState(false);
 
   const openMenu = (e: MouseEvent<HTMLElement>) => {
     e.preventDefault();
@@ -246,6 +249,12 @@ function FileCard(props: FileCardProps) {
     closeMenu(e);
   };
 
+  const openOpenWithDialog = (e: MouseEvent<HTMLElement>) => {
+    setOpenWithDialogOpened(true);
+
+    closeMenu(e);
+  };
+
   const name = useMemo(
     () => props.filename.split('/').slice(-1)[0],
     [props.filename]
@@ -345,6 +354,12 @@ function FileCard(props: FileCardProps) {
           'aria-labelledby': 'basic-button'
         }}
       >
+        <MenuItem onClick={openOpenWithDialog}>
+          <ListItemIcon>
+            <OpenWithIcon />
+          </ListItemIcon>
+          <ListItemText>Open with</ListItemText>
+        </MenuItem>
         <DownloadMenuItem
           filename={props.filename}
           availability={availability}
@@ -373,13 +388,19 @@ function FileCard(props: FileCardProps) {
         height={props.height}
         size={props.size}
         duration={props.duration}
-      ></FileInfoDialog>
+      />
       <DeleteConfirmDialog
         onOk={deleteFile}
         open={deleteConfirmDialogOpened}
         setOpen={setDeleteConfirmDialogOpened}
         filename={props.filename}
-      ></DeleteConfirmDialog>
+      />
+      <OpenWithDialog
+        filename={props.filename}
+        assetPrefix={props.assetPrefix}
+        open={openWithDialogOpened}
+        setOpen={setOpenWithDialogOpened}
+      />
     </>
   );
 }

@@ -6,6 +6,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 
 import { DbConfig } from '../drizzle.config';
 
+import { ClipModule } from './app/clip/clip.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CollectionModule } from './collection/collection.module';
@@ -32,7 +33,8 @@ import { MediaToolModule } from './media-tool/media-tool.module';
     FolderCollectionModule,
     FileModule,
     MediaToolModule,
-    LiveFeedModule
+    LiveFeedModule,
+    ClipModule
   ],
   controllers: [AppController],
   providers: [AppService]

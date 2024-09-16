@@ -1,5 +1,10 @@
 import * as Path from 'path';
 
+export interface ParsedContentFilename {
+  collectionId: number;
+  path: string;
+}
+
 export class PathHelper {
   static isSubdirectory(parent: string, subdirectory: string): boolean {
     const relativePath = Path.relative(parent, subdirectory);
@@ -91,5 +96,29 @@ export class PathHelper {
   static dirname(path: string): string {
     const dirname = Path.dirname(path);
     return dirname === '.' ? '' : dirname;
+  }
+
+  /**
+   * Parse a content url that usually comes from frontend
+   * @param filename Filename in format {collectionId}/{filename}
+   * @returns collection id and relative to it path or null
+   */
+  static parseContentFilename(filename: string): ParsedContentFilename | null {
+    const propsSplitIdx = filename.indexOf('/');
+
+    if (propsSplitIdx === -1 || propsSplitIdx === filename.length - 1) {
+      return null;
+    }
+
+    const collectionId = Number.parseInt(
+      filename.substring(0, propsSplitIdx),
+      10
+    );
+
+    if (Number.isNaN(collectionId)) {
+      return null;
+    }
+
+    return { collectionId, path: filename.substring(propsSplitIdx + 1) };
   }
 }

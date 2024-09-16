@@ -1,11 +1,11 @@
-import axios, { AxiosInstance, isAxiosError } from 'axios';
+import { isAxiosError } from 'axios';
 import { inject, injectable } from 'inversify';
 
 import { Inversify } from '../inversify';
 
+import { ClipAppService } from './clip-app-service';
+import { HttpClient } from './http-client';
 import { LiveFeed } from './live-feed';
-
-import { ConfigService } from '@/config';
 
 export interface CreateCollectionResult {
   id: number;
@@ -71,16 +71,17 @@ export interface FolderMetainfo {
 
 @injectable()
 export class ApiService {
-  private readonly axios: AxiosInstance;
   public readonly liveFeed: LiveFeed;
 
-  constructor(@inject(ConfigService) config: ConfigService) {
-    this.axios = axios.create({ baseURL: config.apiEntry });
+  constructor(
+    @inject(HttpClient) private readonly http: HttpClient,
+    @inject(ClipAppService) public readonly clipApp: ClipAppService
+  ) {
     this.liveFeed = new LiveFeed();
   }
 
   async getCollecionList(): Promise<CollectionRecord[]> {
-    return (await this.axios.get<CollectionRecord[]>('collection')).data;
+    return (await this.http.get<CollectionRecord[]>('collection')).data;
   }
 
   async createFolderCollection(
@@ -89,7 +90,7 @@ export class ApiService {
     folder: string
   ): Promise<CreateCollectionResult> {
     return (
-      await this.axios.post('collection-folder', {
+      await this.http.post<CreateCollectionResult>('collection-folder', {
         ...(caption.length > 0 && { caption }),
         collectionId,
         folder
@@ -98,16 +99,16 @@ export class ApiService {
   }
 
   async removeCollectionFolder(id: number): Promise<void> {
-    await this.axios.delete(`collection-folder/${id}`);
+    await this.http.delete(`collection-folder/${id}`);
   }
 
   async syncFolder(id: number): Promise<void> {
-    await this.axios.patch<SyncFolderResult>(`collection-folder/${id}`);
+    await this.http.patch<SyncFolderResult>(`collection-folder/${id}`);
   }
 
   async folderInfo(id: number): Promise<FolderMetainfo> {
     return (
-      await this.axios.get<FolderMetainfo>(`collection-folder/metainfo/${id}`)
+      await this.http.get<FolderMetainfo>(`collection-folder/metainfo/${id}`)
     ).data;
   }
 
@@ -116,7 +117,7 @@ export class ApiService {
     path: string
   ): Promise<FolderContentRecord[]> {
     return (
-      await this.axios.get<FolderContentRecord[]>(
+      await this.http.get<FolderContentRecord[]>(
         `collection-folder/immediate/${collectionId}/${path}`
       )
     ).data;
@@ -127,7 +128,7 @@ export class ApiService {
     path: string
   ): Promise<FileRecordVariant[]> {
     return (
-      await this.axios.get<FileRecordVariant[]>(
+      await this.http.get<FileRecordVariant[]>(
         `collection-folder/all/${collectionId}/${path}`
       )
     ).data;
@@ -141,7 +142,7 @@ export class ApiService {
 
   async deleteFile(filename: string): Promise<boolean> {
     try {
-      await this.axios.delete(`file/${filename}`);
+      await this.http.delete(`file/${filename}`);
     } catch (e) {
       if (isAxiosError(e)) {
         return false;
@@ -153,7 +154,7 @@ export class ApiService {
 
   async deleteFolder(collectionId: number, path: string): Promise<boolean> {
     try {
-      await this.axios.delete(`folder/${collectionId}/${path}`);
+      await this.http.delete(`folder/${collectionId}/${path}`);
     } catch (e) {
       if (isAxiosError(e)) {
         return false;

@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 
 import { MissingVideoStreamException } from './exceptions';
 
-import { Ffmpeg } from '@/lib/ffmpeg/ffmpeg';
+import { ClipBoundary, Ffmpeg } from '@/lib/ffmpeg/ffmpeg';
 import { PathHelper } from '@/lib/PathHelper';
 
 export interface VideoMetainfo {
@@ -79,5 +79,13 @@ export class MediaToolService {
       path.join(PathHelper.scrubbingEntry, `${props.assetPrefix}.jpg`),
       { overwrite: true }
     );
+  }
+
+  async makeClip(
+    src: string,
+    boundary: ClipBoundary,
+    dest: string
+  ): Promise<boolean> {
+    return Ffmpeg.makeClip(src, boundary, dest);
   }
 }

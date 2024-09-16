@@ -1,0 +1,68 @@
+.filmStrip {
+    position: relative;
+    height: 100px;
+    min-height: 100px;
+    overflow-x: scroll;
+    overflow-y: hidden;
+}
+
+.scrubbingImageContainer {
+    position: absolute;
+    height: 100%;
+    left: 50%;
+    /* TODO avoid use vw */
+    border-right: 50vw solid  rgba(255, 255, 255, 0);
+    object-fit: cover;
+}
+
+.clipBoundary {
+    display: flex;
+    position: absolute;
+    height: 100%;
+    justify-content: space-between;
+    background-color: rgba(255, 255, 255, 0.451);
+}
+
+.clipBoundaryBracket {
+    height: 100%;
+    --thickness: 5px;
+    --bracket-width: 20px;
+    --color: white;
+}
+
+.clipBoundaryMirrored {
+    transform: rotate(180deg);
+}
+
+.clipBoundaryCeiling {
+    width: var(--bracket-width);
+    height: var(--thickness);
+    background-color: var(--color);
+}
+
+.clipBoundaryPilar {
+    width: var(--thickness);
+    height: calc(100% - 2 * var(--thickness));
+    background-color: var(--color);
+}
+
+.clipboardBoundaryFloor {
+    width: var(--bracket-width);
+    height: var(--thickness);
+    background-color: var(--color);
+}
+
+.scrubbingImage {
+    height: 100%;
+    object-fit: cover;
+}
+
+.currentTimeCursor {
+    position: sticky;
+    left: 50%;
+    top: 0;
+    width: 5px;
+    height: 100%;
+    background-color: white;
+    border: 1px solid rgb(79, 79, 79);
+}

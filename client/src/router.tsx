@@ -7,6 +7,8 @@ import OfflineCollection from './offline-collection/OfflineCollection';
 import Player from './player/player';
 import Settings from './settings/Settings';
 
+import ClipApp from '@/apps/clip/clip-app';
+
 const router = createBrowserRouter([
   {
     path: '/',
@@ -37,6 +39,16 @@ const router = createBrowserRouter([
   {
     path: '/play-folder/:id/*',
     element: <Player playMode="folder" />
+  },
+  {
+    path: '/app',
+    element: <Layout />,
+    children: [
+      {
+        path: 'clip',
+        element: <ClipApp />
+      }
+    ]
   }
 ]);
 
