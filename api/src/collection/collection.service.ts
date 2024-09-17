@@ -9,6 +9,7 @@ import { Collection } from './schemas/collection.schema';
 
 import { Folder } from '@/file/schemas/folder.schema';
 import { FolderCollection } from '@/folder-collection/schemas/folder-collection.schema';
+import { coalesce } from '@/lib/drizzle/coalesce';
 import { PathHelper } from '@/lib/PathHelper';
 
 export interface CreateCollectionResult {
@@ -70,7 +71,7 @@ export class CollectionService {
         type: Collection.type,
         caption: Collection.caption,
         cover: Collection.cover,
-        size: Folder.size
+        size: coalesce(Folder.size, 0)
       })
       .from(Collection)
       .leftJoin(FolderCollection, eq(Collection.id, FolderCollection.id))
