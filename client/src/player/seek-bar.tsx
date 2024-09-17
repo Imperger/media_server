@@ -13,6 +13,7 @@ import styles from './seek-bar.module.css';
 import { ScrubbingMethod } from './store/player';
 
 import { useAppSelector } from '@/hooks';
+import { useResize } from '@/lib/use-resize';
 
 type OnSeekMove = (offsetX: number) => void;
 type OnSeekEnd = () => void;
@@ -39,6 +40,8 @@ const SeekBar = memo(
       (state) => state.settings.player.scrubbing
     );
 
+    const windowSize = useResize();
+
     const [scrubbingMethod, setScrubbingMethod] = useState<
       Exclude<ScrubbingMethod, 'auto'>
     >(scrubbingMethodSettings === 'auto' ? 'native' : scrubbingMethodSettings);
@@ -64,7 +67,14 @@ const SeekBar = memo(
       return isSeeking && scrubbingMethod === 'stripe'
         ? latestSeekOffset
         : (playTime / duration) * seekContainerRef.current.clientWidth;
-    }, [scrubbingMethod, isSeeking, latestSeekOffset, playTime, duration]);
+    }, [
+      scrubbingMethod,
+      isSeeking,
+      latestSeekOffset,
+      playTime,
+      duration,
+      windowSize
+    ]);
 
     const seek = (offsetX: number) => {
       if (playerRef.current === null || seekContainerRef.current === null) {
