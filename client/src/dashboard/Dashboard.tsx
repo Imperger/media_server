@@ -1,7 +1,7 @@
 import { Stack } from '@mui/material';
 import { HttpStatusCode, isAxiosError } from 'axios';
 import { useSnackbar } from 'notistack';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
   ApiService,
@@ -40,12 +40,18 @@ function Dashboard() {
   const [collectionList, setCollectionList] = useState<CollectionRecord[]>([]);
   const [createCollectionDialogOpened, setCreateCollectionDialogOpened] =
     useState(false);
+  const prefetchedSyncProgress = useRef<FolderSyncProgress[]>([]);
 
   useEffect(() => {
     setTitle('Dashboard');
 
-    const fetchCollectionList = async () =>
+    const fetchCollectionList = async () => {
       setCollectionList(await api.getCollecionList());
+
+      if (prefetchedSyncProgress.current.length > 0) {
+        folderSyncProgress(prefetchedSyncProgress.current);
+      }
+    };
 
     fetchCollectionList();
   }, []);
@@ -182,10 +188,18 @@ function Dashboard() {
   };
 
   useEffect(() => {
-    api.liveFeed.subscribe<FolderSyncProgress[]>(
-      'folderCollection.syncProgress',
-      folderSyncProgress
-    );
+    api.liveFeed
+      .subscribe<
+        FolderSyncProgress[],
+        FolderSyncProgress[]
+      >('folderCollection.syncProgress', folderSyncProgress)
+      .then((x) => {
+        if (x !== null) {
+          prefetchedSyncProgress.current = x;
+          folderSyncProgress(x);
+        }
+      });
+
     api.liveFeed.subscribe<FolderSyncComplete>(
       'folderCollection.syncComplete',
       folderSyncComplete

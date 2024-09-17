@@ -28,19 +28,21 @@ export class LiveFeed {
     };
   }
 
-  async subscribe<TEventPayload>(
+  async subscribe<TEventPayload, TReturn = void>(
     event: LiveEvent,
     listener: (payload: TEventPayload) => void
-  ): Promise<boolean> {
-    if (!(await this.socket.emitWithAck('subscribe', event))) {
-      return false;
+  ): Promise<TReturn | null> {
+    const result = await this.socket.emitWithAck('subscribe', event);
+
+    if (result === null) {
+      return null;
     }
 
     if (!this.socket.listeners(event).includes(listener)) {
       this.socket.on(event, listener);
     }
 
-    return true;
+    return result;
   }
 
   async unsubscribe(event: LiveEvent) {

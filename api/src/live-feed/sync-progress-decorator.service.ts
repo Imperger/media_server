@@ -32,6 +32,10 @@ export class SyncProgressDecoratorService {
     );
   }
 
+  get progress(): FolderSyncProgressExt[] {
+    return this.foldersSyncProgress;
+  }
+
   onInit(collectionId: number): Promise<void> {
     return new Promise((resolve) => {
       const syncProgressSubscription = this.syncProgressObservable.subscribe(

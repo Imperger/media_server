@@ -12,6 +12,7 @@ import type { Server, Socket } from 'socket.io';
 import { ClientsService } from './clients.service';
 import { LiveFeedService } from './live-feed.service';
 import { ServerRefService } from './server-ref.service';
+import { SyncProgressDecoratorService } from './sync-progress-decorator.service';
 
 @WebSocketGateway({ cors: true, namespace: 'live_feed' })
 export class LiveFeedGateway
@@ -20,7 +21,8 @@ export class LiveFeedGateway
   constructor(
     private readonly serverRef: ServerRefService,
     private readonly liveFeed: LiveFeedService,
-    private readonly clients: ClientsService
+    private readonly clients: ClientsService,
+    private readonly syncProgressDecorator: SyncProgressDecoratorService
   ) {}
 
   async afterInit(server: Server) {
@@ -39,12 +41,16 @@ export class LiveFeedGateway
   subscribe(
     @ConnectedSocket() socket: Socket,
     @MessageBody() payload: string
-  ): boolean {
+  ): unknown {
     if (!this.liveFeed.isValidEvent(payload)) {
-      return false;
+      return null;
     }
 
     this.clients.attachSubscription(socket, payload);
+
+    if (payload === 'folderCollection.syncProgress') {
+      return this.syncProgressDecorator.progress;
+    }
 
     return true;
   }
