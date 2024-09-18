@@ -5,8 +5,8 @@ import {
 } from '@mui/material/OverridableComponent';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import { useResize } from '@/lib/hooks/use-resize';
 import { ImageInfo, imageInfo } from '@/lib/image-info';
-import { useResize } from '@/lib/use-resize';
 
 interface ScrubbingOverlayProps
   extends DefaultComponentProps<OverridableTypeMap> {

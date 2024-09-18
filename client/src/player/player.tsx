@@ -28,7 +28,7 @@ import { updateVolume } from './store/player';
 import { ApiService } from '@/api-service/api-service';
 import { Inversify } from '@/inversify';
 import { ArrayHelper } from '@/lib/ArrayHelper';
-import { useResize } from '@/lib/use-resize';
+import { useResize } from '@/lib/hooks/use-resize';
 
 interface RewindStepProperty {
   step: number;

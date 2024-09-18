@@ -1,8 +1,8 @@
 import 'reflect-metadata';
 import { ThemeProvider } from '@mui/material';
 import { SnackbarProvider } from 'notistack';
-import * as React from 'react';
-import * as ReactDOM from 'react-dom/client';
+import { StrictMode, useEffect } from 'react';
+import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { RouterProvider } from 'react-router-dom';
 import '@fontsource/roboto/300.css';
@@ -20,7 +20,7 @@ import { Theme } from './theme';
 function Root() {
   const api = Inversify.get(ApiService);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isSecureContext) {
       return;
     }
@@ -58,7 +58,7 @@ function Root() {
   }, []);
 
   return (
-    <React.StrictMode>
+    <StrictMode>
       <Provider store={store}>
         <ThemeProvider theme={Theme}>
           <SnackbarProvider maxSnack={3}>
@@ -66,8 +66,8 @@ function Root() {
           </SnackbarProvider>
         </ThemeProvider>
       </Provider>
-    </React.StrictMode>
+    </StrictMode>
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')!).render(<Root />);
+createRoot(document.getElementById('root')!).render(<Root />);

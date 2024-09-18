@@ -13,7 +13,7 @@ import styles from './seek-bar.module.css';
 import { ScrubbingMethod } from './store/player';
 
 import { useAppSelector } from '@/hooks';
-import { useResize } from '@/lib/use-resize';
+import { useResize } from '@/lib/hooks/use-resize';
 
 type OnSeekMove = (offsetX: number) => void;
 type OnSeekEnd = () => void;
