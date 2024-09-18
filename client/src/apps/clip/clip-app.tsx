@@ -1,6 +1,5 @@
 import { MovieCreation as MovieCreationIcon } from '@mui/icons-material';
 import { Box, IconButton, Stack, Typography } from '@mui/material';
-import { useSnackbar } from 'notistack';
 import { useEffect, useMemo, useState } from 'react';
 import { Location, useLocation } from 'react-router-dom';
 
@@ -14,6 +13,7 @@ import { useTitle } from '@/layout/TitleContext';
 import CloseBracketIcon from '@/lib/components/icons/close-bracket-icon';
 import OpenBracketIcon from '@/lib/components/icons/open-bracket-icon';
 import { formatDuration } from '@/lib/format-duration';
+import { useSnackbar } from '@/lib/hooks/use-snackbar';
 import { Path } from '@/lib/path';
 import Player from '@/player/player';
 

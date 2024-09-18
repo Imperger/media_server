@@ -19,7 +19,6 @@ import {
   MenuItem,
   Typography
 } from '@mui/material';
-import { useSnackbar } from 'notistack';
 import {
   MouseEvent,
   SyntheticEvent,
@@ -42,6 +41,7 @@ import { ApiService } from '@/api-service/api-service';
 import { DownloadManager } from '@/download-manager/download-manager';
 import { useDownloadProgress } from '@/download-manager/use-download-progress';
 import { Inversify } from '@/inversify';
+import { useSnackbar } from '@/lib/hooks/use-snackbar';
 
 export interface FileCardProps {
   filename: string;

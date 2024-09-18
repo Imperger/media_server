@@ -16,7 +16,6 @@ import {
   MenuItem,
   Typography
 } from '@mui/material';
-import { useSnackbar } from 'notistack';
 import prettyBytes from 'pretty-bytes';
 import { useMemo, MouseEvent, useState, SyntheticEvent } from 'react';
 import { Link as RouterLink, useParams } from 'react-router-dom';
@@ -30,6 +29,7 @@ import { resetLastWatched } from './store/last-watched';
 
 import { ApiService } from '@/api-service/api-service';
 import { Inversify } from '@/inversify';
+import { useSnackbar } from '@/lib/hooks/use-snackbar';
 
 export interface FolderCardProps {
   name: string;

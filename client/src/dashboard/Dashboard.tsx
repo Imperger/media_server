@@ -1,6 +1,5 @@
 import { Stack } from '@mui/material';
 import { HttpStatusCode, isAxiosError } from 'axios';
-import { useSnackbar } from 'notistack';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
@@ -20,6 +19,7 @@ import FolderCollectionCard from './FolderCollectionCard';
 import { CreateCollectionParameters } from './type';
 
 import { Inversify } from '@/inversify';
+import { useSnackbar } from '@/lib/hooks/use-snackbar';
 
 interface FolderSyncProgress {
   id: number;
