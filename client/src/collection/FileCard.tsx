@@ -35,13 +35,16 @@ import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 import styles from './file-card.module.css';
 import FileInfoDialog from './FileInfoDialog';
 import OpenWithDialog from './open-with-dialog';
+import RenameDialog from './rename-dialog';
 import { updateLastWatched } from './store/last-watched';
 
 import { ApiService } from '@/api-service/api-service';
 import { DownloadManager } from '@/download-manager/download-manager';
 import { useDownloadProgress } from '@/download-manager/use-download-progress';
 import { Inversify } from '@/inversify';
+import RenameIcon from '@/lib/components/icons/rename-icon';
 import { useSnackbar } from '@/lib/hooks/use-snackbar';
+import { Path } from '@/lib/path';
 
 export interface FileCardProps {
   filename: string;
@@ -55,6 +58,11 @@ export interface FileCardProps {
   isCached: boolean;
   onDelete: (filename: string) => void;
   onCache: (filename: string, action: 'cache' | 'evict') => void;
+  onRename: (
+    filename: string,
+    newBasename: string,
+    newAssetPrefix: string
+  ) => void;
 }
 
 type Availability = 'uncached' | 'caching' | 'cached';
@@ -125,6 +133,7 @@ function FileCard(props: FileCardProps) {
   const [fileInfoDialogOpened, setFileInfoDialogOpened] = useState(false);
   const [deleteConfirmDialogOpened, setDeleteConfirmDialogOpened] =
     useState(false);
+  const [renameDialogOpened, setRenameDialogOpened] = useState(false);
   const [openWithDialogOpened, setOpenWithDialogOpened] = useState(false);
 
   const openMenu = (e: MouseEvent<HTMLElement>) => {
@@ -237,6 +246,19 @@ function FileCard(props: FileCardProps) {
     }
   };
 
+  const onRenameConfirm = async (newBasename: string) => {
+    const renamed = await api.renameFile(props.filename, newBasename);
+
+    if (renamed.success) {
+      props.onRename(props.filename, newBasename, renamed.assetPrefix);
+    } else {
+      enqueueSnackbar('Failed to rename the file', {
+        variant: 'warning',
+        autoHideDuration: 2000
+      });
+    }
+  };
+
   const openFileInfo = (e: MouseEvent<HTMLElement>) => {
     setFileInfoDialogOpened(true);
 
@@ -245,6 +267,12 @@ function FileCard(props: FileCardProps) {
 
   const openDeleteConfirmDialog = (e: MouseEvent<HTMLElement>) => {
     setDeleteConfirmDialogOpened(true);
+
+    closeMenu(e);
+  };
+
+  const openRenameDialog = (e: MouseEvent<HTMLElement>) => {
+    setRenameDialogOpened(true);
 
     closeMenu(e);
   };
@@ -372,6 +400,12 @@ function FileCard(props: FileCardProps) {
           </ListItemIcon>
           <ListItemText>Delete</ListItemText>
         </MenuItem>
+        <MenuItem onClick={openRenameDialog}>
+          <ListItemIcon>
+            <RenameIcon />
+          </ListItemIcon>
+          <ListItemText>Rename</ListItemText>
+        </MenuItem>
         <MenuItem onClick={openFileInfo}>
           <ListItemIcon>
             <Info />
@@ -395,6 +429,15 @@ function FileCard(props: FileCardProps) {
         setOpen={setDeleteConfirmDialogOpened}
         filename={props.filename}
       />
+      {renameDialogOpened && (
+        <RenameDialog
+          open={renameDialogOpened}
+          setOpen={setRenameDialogOpened}
+          basenamePlaceholder={Path.basename(props.filename)}
+          extension={Path.extension(props.filename)}
+          onApply={onRenameConfirm}
+        />
+      )}
       <OpenWithDialog
         filename={props.filename}
         assetPrefix={props.assetPrefix}

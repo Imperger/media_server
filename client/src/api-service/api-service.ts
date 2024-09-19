@@ -69,6 +69,17 @@ export interface FolderMetainfo {
   syncedAt: number;
 }
 
+export interface RenameResultOk {
+  success: true;
+  assetPrefix: string;
+}
+
+export interface RenameResultFail {
+  success: false;
+}
+
+export type RenameResult = RenameResultOk | RenameResultFail;
+
 @injectable()
 export class ApiService {
   public readonly liveFeed: LiveFeed;
@@ -138,6 +149,25 @@ export class ApiService {
     _caption: string
   ): Promise<CreateCollectionResult> {
     return { id: -1, cover: '' };
+  }
+
+  async renameFile(
+    filename: string,
+    newFilename: string
+  ): Promise<RenameResult> {
+    try {
+      return (
+        await this.http.patch<RenameResult>(`file/rename/${filename}`, {
+          newFilename
+        })
+      ).data;
+    } catch (e) {
+      if (isAxiosError(e)) {
+        return { success: false };
+      }
+    }
+
+    return { success: false };
   }
 
   async deleteFile(filename: string): Promise<boolean> {

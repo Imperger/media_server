@@ -39,6 +39,7 @@ import FolderCard from './FolderCard';
 import { SortRule, updateSortRule } from './store/sort-rule';
 
 import { Inversify } from '@/inversify';
+import { Path } from '@/lib/path';
 
 interface BreadcrumbItem {
   caption: string;
@@ -229,6 +230,23 @@ function FolderCollection() {
     return [root, ...breadcrumbs];
   }, [metainfo, path]);
 
+  const onRenameFile = (
+    filename: string,
+    newBasename: string,
+    assetPrefix: string
+  ) =>
+    setContent(
+      content.map((x) =>
+        x.type === 'file' && x.filename === filename
+          ? {
+              ...x,
+              filename: `${Path.dirname(x.filename)}/${newBasename}`,
+              assetPrefix
+            }
+          : x
+      )
+    );
+
   const onDeleteFile = (filename: string) =>
     setContent(
       ArrayHelper.filterFirst(
@@ -324,6 +342,7 @@ function FolderCollection() {
                   height={x.height}
                   assetPrefix={x.assetPrefix}
                   createdAt={x.createdAt}
+                  onRename={onRenameFile}
                   onDelete={onDeleteFile}
                   onCache={onCache}
                   isAvailable={isAvailable(x.filename)}

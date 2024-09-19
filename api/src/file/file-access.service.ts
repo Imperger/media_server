@@ -94,6 +94,82 @@ export class FileAccessService {
     return deleted.length > 0 ? deleted[0].size : -1;
   }
 
+  /**
+   * Rename file and returns new asset prefix
+   * @param collectionId
+   * @param relativeToCollectionPath
+   * @param newFilename
+   * @returns asset prefix or null if fail
+   */
+  async rename(
+    collectionId: number,
+    relativeToCollectionPath: string,
+    newFilename: string
+  ): Promise<string | null> {
+    if (Path.basename(relativeToCollectionPath) === newFilename) {
+      return null;
+    }
+
+    const collection = await this.folderCollection.FindFolder(collectionId);
+
+    if (collection === null) {
+      return null;
+    }
+
+    const relativeToMediaFilename = Path.join(
+      PathHelper.relativeToMedia(collection.folder),
+      relativeToCollectionPath
+    );
+
+    const relativeToMediaNewFilename = Path.join(
+      Path.dirname(relativeToCollectionPath),
+      newFilename
+    );
+
+    const absoluteFilename = Path.join(
+      PathHelper.mediaEntry,
+      relativeToMediaFilename
+    );
+
+    const absoluteNewFilename = Path.join(
+      PathHelper.mediaEntry,
+      relativeToMediaNewFilename
+    );
+
+    if (
+      !(await FSHelper.exists(absoluteFilename)) ||
+      (await FSHelper.exists(absoluteNewFilename))
+    ) {
+      return null;
+    }
+
+    const assetPrefix = assetHash(relativeToMediaFilename);
+    const newAssetPrefix = assetHash(relativeToMediaNewFilename);
+
+    await Fs.rename(absoluteFilename, absoluteNewFilename);
+
+    await Fs.rename(
+      Path.join(PathHelper.previewEntry, `${assetPrefix}.jpg`),
+      Path.join(PathHelper.previewEntry, `${newAssetPrefix}.jpg`)
+    );
+
+    await Fs.rename(
+      Path.join(PathHelper.scrubbingEntry, `${assetPrefix}.jpg`),
+      Path.join(PathHelper.scrubbingEntry, `${newAssetPrefix}.jpg`)
+    );
+
+    try {
+      const result = await this.db
+        .update(File)
+        .set({ filename: relativeToMediaNewFilename })
+        .where(eq(File.filename, relativeToMediaFilename));
+
+      return result.changes > 0 ? newAssetPrefix : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
   async removeAssetsAssociatedWithFile(filename: string): Promise<void> {
     try {
       await Fs.unlink(

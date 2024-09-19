@@ -111,6 +111,7 @@ function OfflineCollection() {
             assetPrefix={x.assetPrefix}
             createdAt={x.createdAt}
             onDelete={() => 0}
+            onRename={() => 0}
             onCache={onCache}
             isAvailable={true}
             isCached={true}

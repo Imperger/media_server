@@ -3,6 +3,7 @@ import * as Path from 'path';
 
 import {
   BadRequestException,
+  Body,
   Controller,
   Delete,
   Get,
@@ -10,6 +11,7 @@ import {
   Headers,
   Param,
   ParseIntPipe,
+  Patch,
   Res,
   StreamableFile,
   UseGuards
@@ -18,6 +20,7 @@ import type { FastifyReply } from 'fastify';
 import * as mime from 'mime-types';
 import * as rangeParser from 'range-parser';
 
+import { RenameFileDto } from './dto/rename-file.dto';
 import { FileContentNotFoundException } from './exceptions';
 import { FileAccessService, RangeOptions } from './file-access.service';
 import { CacheControlGuard } from './guards/cache-control.guard';
@@ -110,6 +113,24 @@ export class FileController {
     @Param('*') filename: string
   ) {
     await this.fileAccessService.removeMedia(collectionId, filename);
+  }
+
+  @Patch('rename/:collectionId/*')
+  async rename(
+    @Param('collectionId', ParseIntPipe) collectionId: number,
+    @Param('*') filename: string,
+    @Body() { newFilename }: RenameFileDto
+  ) {
+    const assetPrefix = await this.fileAccessService.rename(
+      collectionId,
+      filename,
+      newFilename
+    );
+
+    return {
+      success: assetPrefix !== null,
+      ...(assetPrefix && { assetPrefix })
+    };
   }
 
   private contentRange(start: number, end: number, size: number) {
