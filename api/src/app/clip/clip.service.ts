@@ -48,7 +48,7 @@ export class ClipService {
     boundary: ClipBoundary,
     output: string
   ): Promise<boolean> {
-    if (boundary.begin >= boundary.end) {
+    if (input === output || boundary.begin >= boundary.end) {
       return false;
     }
 
