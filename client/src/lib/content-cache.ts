@@ -2,6 +2,11 @@ import { CachePrefix, CacheRuntime, CacheSuffix } from '../constants';
 
 export type DownloadProgressListener = (progress: number) => void;
 
+export interface MoveFileEntity {
+  filename: string;
+  assetPrefix: string;
+}
+
 export class ContentCache {
   static get cacheName(): string {
     return `${CachePrefix}-${CacheRuntime}-${CacheSuffix}`;
@@ -42,6 +47,51 @@ export class ContentCache {
     const cache = await caches.open(ContentCache.cacheName);
 
     await cache.put(url, cacheableResponse);
+  }
+
+  static async moveFile(
+    src: MoveFileEntity,
+    dst: MoveFileEntity
+  ): Promise<boolean> {
+    const baseURL = import.meta.env.BASE_URL;
+    const cache = await caches.open(ContentCache.cacheName);
+
+    const mediaMoved = await ContentCache.moveEntity(
+      cache,
+      `${baseURL}api/file/content/${src.filename}`,
+      `${baseURL}api/file/content/${dst.filename}`
+    );
+
+    const previewMoved = await ContentCache.moveEntity(
+      cache,
+      `${baseURL}api/file/preview/${src.assetPrefix}.jpg`,
+      `${baseURL}api/file/preview/${dst.assetPrefix}.jpg`
+    );
+
+    const scrubbingMoved = await ContentCache.moveEntity(
+      cache,
+      `${baseURL}api/file/scrubbing/${src.assetPrefix}.jpg`,
+      `${baseURL}api/file/scrubbing/${dst.assetPrefix}.jpg`
+    );
+
+    return mediaMoved && previewMoved && scrubbingMoved;
+  }
+
+  private static async moveEntity(
+    cache: Cache,
+    srcUrl: string,
+    dstUrl: string
+  ): Promise<boolean> {
+    const response = await cache.match(encodeURI(srcUrl));
+
+    if (response === undefined) {
+      return false;
+    }
+
+    await cache.put(encodeURI(dstUrl), response);
+    await cache.delete(encodeURI(srcUrl));
+
+    return true;
   }
 
   static async evictFile(url: string): Promise<void> {

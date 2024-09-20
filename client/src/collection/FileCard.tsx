@@ -60,6 +60,7 @@ export interface FileCardProps {
   onCache: (filename: string, action: 'cache' | 'evict') => void;
   onRename: (
     filename: string,
+    assetPrefix: string,
     newBasename: string,
     newAssetPrefix: string
   ) => void;
@@ -250,7 +251,12 @@ function FileCard(props: FileCardProps) {
     const renamed = await api.renameFile(props.filename, newBasename);
 
     if (renamed.success) {
-      props.onRename(props.filename, newBasename, renamed.assetPrefix);
+      props.onRename(
+        props.filename,
+        props.assetPrefix,
+        newBasename,
+        renamed.assetPrefix
+      );
     } else {
       enqueueSnackbar('Failed to rename the file', {
         variant: 'warning',

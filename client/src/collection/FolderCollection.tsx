@@ -230,22 +230,40 @@ function FolderCollection() {
     return [root, ...breadcrumbs];
   }, [metainfo, path]);
 
-  const onRenameFile = (
+  const onRenameFile = async (
     filename: string,
+    assetPrefix: string,
     newBasename: string,
-    assetPrefix: string
-  ) =>
+    newAssetPrefix: string
+  ) => {
+    const movedCache = await ContentCache.moveFile(
+      { filename, assetPrefix },
+      {
+        filename: `${Path.dirname(filename)}/${newBasename}`,
+        assetPrefix: newAssetPrefix
+      }
+    );
+
+    if (movedCache) {
+      setCachedFiles(
+        cachedFiles.map((x) =>
+          x === filename ? `${Path.dirname(filename)}/${newBasename}` : x
+        )
+      );
+    }
+
     setContent(
       content.map((x) =>
         x.type === 'file' && x.filename === filename
           ? {
               ...x,
               filename: `${Path.dirname(x.filename)}/${newBasename}`,
-              assetPrefix
+              assetPrefix: newAssetPrefix
             }
           : x
       )
     );
+  };
 
   const onDeleteFile = (filename: string) =>
     setContent(
