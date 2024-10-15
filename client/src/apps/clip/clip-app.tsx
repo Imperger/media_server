@@ -53,8 +53,7 @@ export default function ClipApp() {
 
   const extension = Path.extension(filename);
 
-  const scrubbingUrl =
-    `${baseURL}api/file/scrubbing/${location.state.assetPrefix}.jpg` ?? '';
+  const scrubbingUrl = `${baseURL}api/file/scrubbing/${location.state.assetPrefix}.jpg`;
 
   const onInit = (ref: HTMLVideoElement) => setPlayerRef(ref);
 
