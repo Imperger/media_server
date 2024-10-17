@@ -218,6 +218,11 @@ export class FileAccessService {
     );
   }
 
+  /**
+   * Find file, using relative to the media path
+   * @param filename relative to the media path
+   * @returns file info or null
+   */
   async findFileByFilename(filename: string): Promise<FileRecord | null> {
     const file = (
       await this.db
