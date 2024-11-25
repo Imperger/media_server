@@ -1,11 +1,13 @@
 import { createBrowserRouter } from 'react-router-dom';
 
+import TagApp from './apps/tag/tag-app';
 import FolderCollection from './collection/FolderCollection';
 import Dashboard from './dashboard/Dashboard';
 import Layout from './layout/Layout';
 import OfflineCollection from './offline-collection/OfflineCollection';
 import Player from './player/player';
 import Settings from './settings/Settings';
+import Tags from './tags/tags';
 
 import ClipApp from '@/apps/clip/clip-app';
 
@@ -25,6 +27,10 @@ const router = createBrowserRouter([
       {
         path: '/offline-collection',
         element: <OfflineCollection />
+      },
+      {
+        path: '/tags',
+        element: <Tags />
       },
       {
         path: '/settings',
@@ -47,6 +53,10 @@ const router = createBrowserRouter([
       {
         path: 'clip',
         element: <ClipApp />
+      },
+      {
+        path: 'tag',
+        element: <TagApp />
       }
     ]
   }

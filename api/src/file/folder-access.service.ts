@@ -11,10 +11,13 @@ import { Folder } from './schemas/folder.schema';
 
 import { UnknownFolderException } from '@/folder-collection/exceptions';
 import { FolderCollectionService } from '@/folder-collection/folder-collection.service';
+import { ArrayHelper } from '@/lib/array-helper';
 import { assetHash } from '@/lib/asset-hash';
 import { increment } from '@/lib/drizzle/increase';
+import { isNonEmptyArray } from '@/lib/non-empty_array';
 import { PathHelper } from '@/lib/PathHelper';
 import { AtLeastOne } from '@/lib/type-helper';
+import { TagFolderGlobal } from '@/meta-info/schemas/tag-folder.schema';
 
 export interface IncreaseStats {
   size?: number;
@@ -22,6 +25,7 @@ export interface IncreaseStats {
 }
 
 export interface FolderRecord {
+  id: number;
   path: string;
   size: number;
   files: number;
@@ -45,6 +49,7 @@ export class FolderAccessService {
     @Inject('DB')
     private readonly db: BetterSQLite3Database<{
       Folder: typeof Folder;
+      TagFolderGlobal: typeof TagFolderGlobal;
     }>,
     @Inject(forwardRef(() => FileAccessService))
     private readonly fileAccess: FileAccessService,
@@ -71,15 +76,30 @@ export class FolderAccessService {
       });
   }
 
-  async find(path: string): Promise<FolderRecord | null> {
+  async find(
+    collectionId: number,
+    relativePath: string
+  ): Promise<FolderRecord | null> {
+    const collection = await this.folderCollection.FindFolder(collectionId);
+
+    if (collection === null) {
+      throw new UnknownFolderException();
+    }
+
+    const relativeToMediaFilename = Path.join(
+      PathHelper.relativeToMedia(collection.folder),
+      relativePath
+    );
+
     const folder = await this.db
       .select({
+        id: Folder.id,
         path: Folder.path,
         size: Folder.size,
         files: Folder.files
       })
       .from(Folder)
-      .where(eq(Folder.path, path));
+      .where(eq(Folder.path, relativeToMediaFilename));
 
     return folder.length > 0 ? folder[0] : null;
   }
@@ -169,12 +189,38 @@ export class FolderAccessService {
   ): Promise<RemoveFolderResult | null> {
     const filter = `${path}%`;
 
+    const removedIds = (
+      await this.db
+        .select({ id: Folder.id })
+        .from(Folder)
+        .where(sql`${Folder.path} like ${filter}`)
+    ).map((x) => x.id);
+
+    for (const id of removedIds) {
+      await this.detachTags(id);
+    }
+
     const removed = await this.db
       .delete(Folder)
       .where(sql`${Folder.path} like ${filter}`)
       .returning({ size: Folder.size, files: Folder.files });
 
-    return removed.length > 0 ? removed[0] : null;
+    return isNonEmptyArray(removed)
+      ? ArrayHelper.max(removed, (a, b) => a.files < b.size)
+      : null;
+  }
+
+  async resetRecordWithChilds(path: string): Promise<void> {
+    const filter = `${path}%`;
+
+    await this.db
+      .update(Folder)
+      .set({ files: 0, size: 0 })
+      .where(sql`${Folder.path} like ${filter}`);
+  }
+
+  async removeAllEmpty(): Promise<void> {
+    await this.db.delete(Folder).where(eq(Folder.files, 0));
   }
 
   /**
@@ -227,6 +273,12 @@ export class FolderAccessService {
         }
       );
     }
+  }
+
+  async detachTags(folderId: number): Promise<void> {
+    await this.db
+      .delete(TagFolderGlobal)
+      .where(eq(TagFolderGlobal.id, folderId));
   }
 
   private folderNameFromPath(path: string): string {

@@ -37,7 +37,7 @@ export class FileSyncService {
   ): Promise<number> {
     const syncStartTime = Date.now();
 
-    await this.folderAccess.removeRecordWithChilds(
+    await this.folderAccess.resetRecordWithChilds(
       PathHelper.relativeToMedia(absolutePath)
     );
 
@@ -110,6 +110,8 @@ export class FileSyncService {
 
     await this.disposeDanglingRecords(absolutePath, syncStartTime);
 
+    await this.folderAccess.removeAllEmpty();
+
     await completePromise;
 
     return syncedNow - syncedBefore;
@@ -150,6 +152,7 @@ export class FileSyncService {
       }
 
       await this.fileAccess.removeAssetsAssociatedWithFile(file[0].filename);
+      await this.fileAccess.detachTags(file[0].id);
       await this.db.delete(File).where(eq(File.id, file[0].id));
     }
   }
@@ -177,14 +180,9 @@ export class FileSyncService {
       );
 
     for (const dangling of danglingFiles) {
+      await this.fileAccess.removeRecord(dangling.filename);
       await this.fileAccess.removeAssetsAssociatedWithFile(dangling.filename);
     }
-
-    await this.db
-      .delete(File)
-      .where(
-        sql`${File.syncedAt} < ${syncStartTime} and ${File.filename} like ${folderLike}`
-      );
 
     return danglingFiles.length;
   }

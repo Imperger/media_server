@@ -1,0 +1,38 @@
+.tracksComponent {
+    position: relative;
+    height: 100%;
+    overflow: auto;
+}
+
+.tracks {
+    position: absolute;
+    left: 50%;
+    border-right: 50vw solid  rgba(255, 255, 255, 0);
+}
+
+.track {
+    height: 26px;
+    border: 1px solid gray;
+}
+
+.tag {
+    position: absolute;
+    box-sizing: border-box;
+    cursor: pointer;
+    padding: 0 5px;
+}
+
+.tagSelected {
+    font-weight: bold;
+}
+
+.currentTimeCursor {
+    position: sticky;
+    box-sizing: border-box;
+    left: 50%;
+    top: 0;
+    width: 5px;
+    height: 100%;
+    background-color: white;
+    border: 1px solid rgb(79, 79, 79);
+}

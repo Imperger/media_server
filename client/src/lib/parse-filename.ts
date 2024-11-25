@@ -4,9 +4,8 @@ export interface ParsedFilename {
 }
 
 export function parseFilename(filename: string): ParsedFilename {
-  const filenameArray = filename.split('');
-  const startSlash = filenameArray.indexOf('/');
-  const endSlash = filenameArray.lastIndexOf('/');
+  const startSlash = filename.indexOf('/');
+  const endSlash = filename.lastIndexOf('/');
 
   const collectionId = Number.parseInt(filename);
   const path = filename.substring(startSlash + 1, endSlash);

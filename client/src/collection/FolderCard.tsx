@@ -2,7 +2,8 @@ import {
   Delete as DeleteIcon,
   Folder,
   Menu as MenuIcon,
-  PlaylistPlay as PlaylistPlayIcon
+  PlaylistPlay as PlaylistPlayIcon,
+  OpenWith as OpenWithIcon
 } from '@mui/icons-material';
 import {
   Badge,
@@ -25,6 +26,7 @@ import { ContentCache } from '../lib/content-cache';
 
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 import styles from './folder-card.module.css';
+import OpenWithFolderDialog from './open-with-folder-dialog';
 import { resetLastWatched } from './store/last-watched';
 
 import { ApiService } from '@/api-service/api-service';
@@ -51,6 +53,9 @@ function FolderCard({ name, size, files, onDelete, preview }: FolderCardProps) {
   const isMenuOpen = Boolean(menuAnchor);
   const [deleteConfirmDialogOpened, setDeleteConfirmDialogOpened] =
     useState(false);
+  const [openWithDialogOpened, setOpenWithDialogOpened] = useState(false);
+
+  const collectionId = useMemo(() => Number.parseInt(id!), [id]);
 
   const pathPrefix = useMemo(() => `${path}${path!.length ? '/' : ''}`, [path]);
 
@@ -65,7 +70,7 @@ function FolderCard({ name, size, files, onDelete, preview }: FolderCardProps) {
   );
 
   const deleteFolder = async () => {
-    if (await api.deleteFolder(Number.parseInt(id!), relativePath)) {
+    if (await api.deleteFolder(collectionId, relativePath)) {
       await ContentCache.evictFolder(absolutePath);
 
       enqueueSnackbar('Deleted', {
@@ -107,6 +112,12 @@ function FolderCard({ name, size, files, onDelete, preview }: FolderCardProps) {
       e.currentTarget.onerror = null;
       e.currentTarget.src = `${baseURL}img/folder_cover.jpg`;
     }
+  };
+
+  const openOpenWithDialog = (e: MouseEvent<HTMLElement>) => {
+    setOpenWithDialogOpened(true);
+
+    closeMenu(e);
   };
 
   return (
@@ -170,6 +181,12 @@ function FolderCard({ name, size, files, onDelete, preview }: FolderCardProps) {
           'aria-labelledby': 'basic-button'
         }}
       >
+        <MenuItem onClick={openOpenWithDialog}>
+          <ListItemIcon>
+            <OpenWithIcon />
+          </ListItemIcon>
+          <ListItemText>Open with</ListItemText>
+        </MenuItem>
         <MenuItem component={RouterLink} to={`/play-folder/${absolutePath}`}>
           <ListItemIcon>
             <PlaylistPlayIcon />
@@ -188,7 +205,13 @@ function FolderCard({ name, size, files, onDelete, preview }: FolderCardProps) {
         open={deleteConfirmDialogOpened}
         setOpen={setDeleteConfirmDialogOpened}
         filename={name}
-      ></DeleteConfirmDialog>
+      />
+      <OpenWithFolderDialog
+        collectionId={collectionId}
+        relativePath={relativePath}
+        open={openWithDialogOpened}
+        setOpen={setOpenWithDialogOpened}
+      />
     </>
   );
 }

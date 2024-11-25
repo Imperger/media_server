@@ -15,6 +15,7 @@ import { FileModule } from './file/file.module';
 import { FolderCollectionModule } from './folder-collection/folder-collection.module';
 import { LiveFeedModule } from './live-feed/live-feed.module';
 import { MediaToolModule } from './media-tool/media-tool.module';
+import { MetaInfoModule } from './meta-info/meta-info.module';
 
 @Module({
   imports: [
@@ -34,7 +35,8 @@ import { MediaToolModule } from './media-tool/media-tool.module';
     FileModule,
     MediaToolModule,
     LiveFeedModule,
-    ClipModule
+    ClipModule,
+    MetaInfoModule
   ],
   controllers: [AppController],
   providers: [AppService]

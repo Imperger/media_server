@@ -1,0 +1,13 @@
+.tagComponent {
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - 64px);
+}
+
+.tagView {
+    flex: 1 1 auto;
+}
+
+.tagEditControls {
+    flex: 0 1 auto;
+}

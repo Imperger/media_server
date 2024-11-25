@@ -15,8 +15,11 @@ import { assetHash } from '@/lib/asset-hash';
 import { FSHelper } from '@/lib/FSHelper';
 import { PathHelper } from '@/lib/PathHelper';
 import { MediaToolService } from '@/media-tool/media-tool.service';
+import { TagFileFragment } from '@/meta-info/schemas/tag-file-fragment.schema';
+import { TagFileGlobal } from '@/meta-info/schemas/tag-file-global.schema';
 
 export interface FileRecord {
+  id: number;
   filename: string;
   size: number;
   width: number;
@@ -37,6 +40,8 @@ export class FileAccessService {
     @Inject('DB')
     private db: BetterSQLite3Database<{
       File: typeof File;
+      TagFileGlobal: typeof TagFileGlobal;
+      TagFileFragment: typeof TagFileFragment;
     }>,
     private readonly mediaTool: MediaToolService,
     @Inject(forwardRef(() => FolderCollectionService))
@@ -45,6 +50,11 @@ export class FileAccessService {
     private folderAccess: FolderAccessService
   ) {}
 
+  /**
+   * Creates or updates a file record for corresponding filename
+   * @param filename relative to media path
+   * @returns file info
+   */
   async create(filename: string): Promise<FileRecord | null> {
     try {
       const stat = await Fs.stat(Path.join(PathHelper.mediaEntry, filename));
@@ -58,19 +68,21 @@ export class FileAccessService {
         syncedAt: Date.now()
       };
 
-      await this.db
-        .insert(File)
-        .values({
-          filename,
-          depth: PathHelper.fileDepth(filename),
-          ...shared
-        })
-        .onConflictDoUpdate({
-          target: File.filename,
-          set: shared
-        });
+      const id = (
+        await this.db
+          .insert(File)
+          .values({
+            filename,
+            depth: PathHelper.fileDepth(filename),
+            ...shared
+          })
+          .onConflictDoUpdate({
+            target: File.filename,
+            set: shared
+          })
+      ).lastInsertRowid as number;
 
-      return { filename, assetPrefix: assetHash(filename), ...shared };
+      return { id, filename, assetPrefix: assetHash(filename), ...shared };
     } catch (e) {
       return null;
     }
@@ -82,16 +94,37 @@ export class FileAccessService {
    * @returns The file size if file was removed or -1 if not
    */
   async remove(filename: string): Promise<number> {
-    const deleted = await this.db
-      .delete(File)
-      .where(eq(File.filename, filename))
-      .returning({ size: File.size });
+    const deletedSize = await this.removeRecord(filename);
 
     try {
       await Fs.unlink(Path.join(PathHelper.mediaEntry, filename));
     } catch (e) {}
 
-    return deleted.length > 0 ? deleted[0].size : -1;
+    return deletedSize;
+  }
+
+  async removeRecord(filename: string): Promise<number> {
+    const file = await this.db
+      .select({ id: File.id })
+      .from(File)
+      .where(eq(File.filename, filename));
+
+    if (file.length === 0) {
+      return -1;
+    }
+
+    await this.detachTags(file[0].id);
+
+    const deleted = await this.db
+      .delete(File)
+      .where(eq(File.filename, filename))
+      .returning({ size: File.size });
+
+    if (deleted.length === 0) {
+      return -1;
+    }
+
+    return deleted[0].size;
   }
 
   /**
@@ -227,6 +260,7 @@ export class FileAccessService {
     const file = (
       await this.db
         .select({
+          id: File.id,
           filename: File.filename,
           size: File.size,
           width: File.width,
@@ -277,6 +311,7 @@ export class FileAccessService {
     return (
       await this.db
         .select({
+          id: File.id,
           filename: File.filename,
           size: File.size,
           width: File.width,
@@ -309,6 +344,7 @@ export class FileAccessService {
     return (
       await this.db
         .select({
+          id: File.id,
           filename: File.filename,
           size: File.size,
           width: File.width,
@@ -337,5 +373,12 @@ export class FileAccessService {
     }
 
     return createReadStream(filename, options);
+  }
+
+  async detachTags(fileId: number): Promise<void> {
+    await this.db.delete(TagFileGlobal).where(eq(TagFileGlobal.fileId, fileId));
+    await this.db
+      .delete(TagFileFragment)
+      .where(eq(TagFileFragment.fileId, fileId));
   }
 }

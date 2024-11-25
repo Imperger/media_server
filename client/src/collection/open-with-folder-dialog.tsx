@@ -1,7 +1,4 @@
-import {
-  LocalMovies as LocalMoviesIcon,
-  Tag as TagIcon
-} from '@mui/icons-material';
+import { Tag as TagIcon } from '@mui/icons-material';
 import {
   Dialog,
   DialogContent,
@@ -16,17 +13,17 @@ import { Link as RouterLink } from 'react-router-dom';
 
 import { RWState } from '@/lib/rw-state';
 
-export interface OpenWithDialogProps extends RWState<'open', boolean> {
-  filename: string;
-  assetPrefix: string;
+export interface OpenWithFolderDialogProps extends RWState<'open', boolean> {
+  collectionId: number;
+  relativePath: string;
 }
 
-export default function OpenWithDialog({
-  filename,
-  assetPrefix,
+export default function OpenWithFoldereDialog({
+  collectionId,
+  relativePath,
   open,
   setOpen
-}: OpenWithDialogProps) {
+}: OpenWithFolderDialogProps) {
   const baseURL = import.meta.env.BASE_URL;
   const onClose = () => setOpen(false);
 
@@ -38,17 +35,9 @@ export default function OpenWithDialog({
           <ListItem disablePadding>
             <ListItemButton
               component={RouterLink}
-              to={`${baseURL}app/clip`}
-              state={{ filename, assetPrefix }}
+              to={`${baseURL}app/tag`}
+              state={{ mode: 'folder', collectionId, relativePath }}
             >
-              <ListItemIcon>
-                <LocalMoviesIcon />
-              </ListItemIcon>
-              <ListItemText primary="Clip app" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton disabled>
               <ListItemIcon>
                 <TagIcon />
               </ListItemIcon>

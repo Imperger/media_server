@@ -1,0 +1,26 @@
+.tagTree {
+    display: flex;
+    flex-direction: column;
+}
+
+.treeView {
+    flex: 1 1 auto;
+    overflow: auto;
+    cursor: pointer;
+}
+
+.listItem {
+    list-style: none;
+}
+
+.listItemLeaf {
+    margin-left: 24px;
+}
+
+.listItemLeafSelected {
+    text-decoration: underline;
+}
+
+.controls {
+    flex: 0 1 auto;
+}

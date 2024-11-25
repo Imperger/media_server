@@ -1,3 +1,5 @@
+export type Comparator<T> = (a: T, b: T) => boolean;
+
 export class ArrayHelper {
   /**
    * The result of the work is the input array but without
@@ -35,5 +37,62 @@ export class ArrayHelper {
 
       return origin[originIdx];
     });
+  }
+
+  static quickSort<T>(arr: T[], cmp: Comparator<T>, low: number, high: number) {
+    if (low >= high) return;
+    const pi = ArrayHelper.partition(arr, cmp, low, high);
+
+    ArrayHelper.quickSort(arr, cmp, low, pi - 1);
+    ArrayHelper.quickSort(arr, cmp, pi + 1, high);
+  }
+
+  /**
+   * Merge sorted arrays to single
+   * @param array
+   */
+  static mergeArrays<T>(array: T[][], cmp: Comparator<T>): T[] {
+    const result: T[] = [];
+    const arrayIdx = Array.from({ length: array.length }, () => 0);
+
+    for (let unprocessedArrays = arrayIdx.length; unprocessedArrays > 0; ) {
+      let minIdx = arrayIdx.findIndex((x, n) => x < array[n].length);
+      for (let n = minIdx + 1; n < arrayIdx.length; ++n) {
+        if (
+          arrayIdx[n] < array[n].length &&
+          cmp(array[n][arrayIdx[n]], array[minIdx][arrayIdx[minIdx]])
+        ) {
+          minIdx = n;
+        }
+      }
+
+      result.push(array[minIdx][arrayIdx[minIdx]++]);
+
+      if (arrayIdx[minIdx] === array[minIdx].length) {
+        --unprocessedArrays;
+      }
+    }
+
+    return result;
+  }
+
+  private static partition<T>(
+    arr: T[],
+    cmp: Comparator<T>,
+    low: number,
+    high: number
+  ) {
+    const pivot = arr[high];
+    let i = low - 1;
+
+    for (let j = low; j <= high - 1; j++) {
+      if (cmp(arr[j], pivot)) {
+        i++;
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    }
+    [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]];
+
+    return i + 1;
   }
 }

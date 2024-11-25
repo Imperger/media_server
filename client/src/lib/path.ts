@@ -1,3 +1,8 @@
+export interface ParsedPath {
+  collectionId: number;
+  filename: string;
+}
+
 export class Path {
   static dirname(filename: string): string {
     const lastPathSeparator = filename.lastIndexOf('/');
@@ -18,5 +23,13 @@ export class Path {
   static extension(filename: string): string {
     const extensionStart = filename.lastIndexOf('.');
     return extensionStart !== -1 ? filename.substring(extensionStart) : '';
+  }
+
+  static parse(path: string): ParsedPath {
+    const startSlash = path.indexOf('/');
+    const collectionId = Number.parseInt(path);
+    const filename = path.substring(startSlash + 1);
+
+    return { collectionId, filename };
   }
 }

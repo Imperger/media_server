@@ -1,8 +1,82 @@
 import { Socket, io } from 'socket.io-client';
 
+import { TagStyle } from './meta-info';
+
+type GlobalFileTagUpdateEventName<TPath extends string = string> =
+  `tagFileGlobal.update_${TPath}`;
+
+type FragmentFileTagUpdateEventName<TPath extends string = string> =
+  `tagFileFragment.update_${TPath}`;
+
+type GlobalFolderTagUpdateEventName<TPath extends string = string> =
+  `tagFolderGlobal.update_${TPath}`;
+
 export type LiveEvent =
   | 'folderCollection.syncProgress'
-  | 'folderCollection.syncComplete';
+  | 'folderCollection.syncComplete'
+  | 'tag.update'
+  | GlobalFileTagUpdateEventName
+  | FragmentFileTagUpdateEventName
+  | GlobalFolderTagUpdateEventName;
+
+interface AddTagEvent {
+  type: 'add';
+  name: string;
+  style: TagStyle;
+}
+
+interface RenameTagEvent {
+  type: 'rename';
+  oldName: string;
+  newName: string;
+}
+
+interface DeleteTagEvent {
+  type: 'delete';
+  name: string;
+}
+
+export type TagUpdateEvent = AddTagEvent | RenameTagEvent | DeleteTagEvent;
+export type OnTagUpdate = (e: TagUpdateEvent) => void;
+
+export interface AddGlobalTagEvent {
+  type: 'add';
+  name: string;
+}
+
+export interface RemoveGlobalTagEvent {
+  type: 'remove';
+  name: string;
+}
+
+export type GlobalTagUpdateEvent = AddGlobalTagEvent | RemoveGlobalTagEvent;
+export type OnGlobalTagUpdate = (e: GlobalTagUpdateEvent) => void;
+
+export interface AddFragmentTagEvent {
+  type: 'add';
+  name: string;
+  begin: number;
+  end: number;
+  style: TagStyle;
+}
+
+export interface UpdateFragmentTagEvent {
+  type: 'update';
+  tag: string;
+  begin?: number;
+  end?: number;
+}
+
+export interface RemoveFragmentTagEvent {
+  type: 'remove';
+  name: string;
+}
+
+export type FragmentTagUpdateEvent =
+  | AddFragmentTagEvent
+  | UpdateFragmentTagEvent
+  | RemoveFragmentTagEvent;
+export type OnFragmentTagUpdate = (e: FragmentTagUpdateEvent) => void;
 
 export type OnlineListener = (isOnline: boolean) => void;
 

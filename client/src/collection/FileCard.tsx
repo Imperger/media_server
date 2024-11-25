@@ -34,7 +34,7 @@ import { formatDuration } from '../lib/format-duration';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 import styles from './file-card.module.css';
 import FileInfoDialog from './FileInfoDialog';
-import OpenWithDialog from './open-with-dialog';
+import OpenWithFileDialog from './open-with-file-dialog';
 import RenameDialog from './rename-dialog';
 import { updateLastWatched } from './store/last-watched';
 
@@ -444,7 +444,7 @@ function FileCard(props: FileCardProps) {
           onApply={onRenameConfirm}
         />
       )}
-      <OpenWithDialog
+      <OpenWithFileDialog
         filename={props.filename}
         assetPrefix={props.assetPrefix}
         open={openWithDialogOpened}

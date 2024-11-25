@@ -2,7 +2,8 @@ import {
   Dashboard,
   Login,
   Settings,
-  CloudDownload as CloudDownloadIcon
+  CloudDownload as CloudDownloadIcon,
+  Tag as TagIcon
 } from '@mui/icons-material';
 import {
   Drawer,
@@ -40,6 +41,18 @@ function SidebarMenu({ open, setOpen }: RWState<'open', boolean>) {
             <CloudDownloadIcon className={styles.icon} />
           </ListItemIcon>
           <ListItemText className={styles.text} primary={'Saved'} />
+        </ListItemButton>
+      </ListItem>
+      <ListItem disablePadding>
+        <ListItemButton
+          component={Link}
+          to={`/tags`}
+          onClick={toggleDrawer(false)}
+        >
+          <ListItemIcon>
+            <TagIcon className={styles.icon} />
+          </ListItemIcon>
+          <ListItemText className={styles.text} primary={'Tags'} />
         </ListItemButton>
       </ListItem>
       <ListItem disablePadding>
