@@ -1,4 +1,4 @@
-import { NonEmptyArray } from './non-empty_array';
+import { NonEmptyArray } from './non-empty-array';
 
 type Comparator<T> = (a: T, b: T) => boolean;
 

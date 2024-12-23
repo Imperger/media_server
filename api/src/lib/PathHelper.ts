@@ -5,6 +5,11 @@ export interface ParsedContentFilename {
   path: string;
 }
 
+export interface ParsedContentPath {
+  collectionId: number;
+  path: string;
+}
+
 export class PathHelper {
   static isSubdirectory(parent: string, subdirectory: string): boolean {
     const relativePath = Path.relative(parent, subdirectory);
@@ -120,5 +125,30 @@ export class PathHelper {
     }
 
     return { collectionId, path: filename.substring(propsSplitIdx + 1) };
+  }
+
+  static parseContentPath(path: string): ParsedContentPath {
+    const startSlash = path.indexOf('/');
+
+    const collectionId = Number.parseInt(path, 10);
+
+    const relativeToCollectionpath =
+      startSlash !== -1 ? path.substring(startSlash + 1) : '';
+
+    return { collectionId, path: relativeToCollectionpath };
+  }
+
+  static isContentPath(path: string): boolean {
+    const startSlash = path.indexOf('/');
+    const collectionId = startSlash === -1 ? path : path.slice(0, startSlash);
+
+    return (
+      collectionId.length > 0 &&
+      collectionId.split('').every((x) => x >= '0' && x <= '9') &&
+      path
+        .substring(startSlash + 1)
+        .split('/')
+        .every((x) => x.length)
+    );
   }
 }

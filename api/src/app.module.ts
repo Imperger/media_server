@@ -16,6 +16,7 @@ import { FolderCollectionModule } from './folder-collection/folder-collection.mo
 import { LiveFeedModule } from './live-feed/live-feed.module';
 import { MediaToolModule } from './media-tool/media-tool.module';
 import { MetaInfoModule } from './meta-info/meta-info.module';
+import { SearchModule } from './search/search.module';
 
 @Module({
   imports: [
@@ -36,7 +37,8 @@ import { MetaInfoModule } from './meta-info/meta-info.module';
     MediaToolModule,
     LiveFeedModule,
     ClipModule,
-    MetaInfoModule
+    MetaInfoModule,
+    SearchModule
   ],
   controllers: [AppController],
   providers: [AppService]

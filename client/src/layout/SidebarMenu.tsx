@@ -3,7 +3,8 @@ import {
   Login,
   Settings,
   CloudDownload as CloudDownloadIcon,
-  Tag as TagIcon
+  Tag as TagIcon,
+  Search as SearchIcon
 } from '@mui/icons-material';
 import {
   Drawer,
@@ -12,14 +13,35 @@ import {
   ListItemIcon,
   ListItemText
 } from '@mui/material';
-import { Link } from 'react-router-dom';
+import { useMemo } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 
 import { RWState } from '../lib/rw-state';
 
 import styles from './sidebar-menu.module.css';
 
-function SidebarMenu({ open, setOpen }: RWState<'open', boolean>) {
+import type { FolderCollectionPrefix } from '@/router';
+
+function pathnameToSearchPath(pathname: string): string {
+  const folderCollectionPrefix: FolderCollectionPrefix = '/folder-collection';
+
+  if (pathname.startsWith(folderCollectionPrefix)) {
+    return pathname.substring(folderCollectionPrefix.length + 1);
+  }
+
+  return '';
+}
+
+export default function SidebarMenu({
+  open,
+  setOpen
+}: RWState<'open', boolean>) {
+  const location = useLocation();
   const toggleDrawer = (newOpen: boolean) => () => setOpen(newOpen);
+  const searchPath = useMemo(
+    () => pathnameToSearchPath(location.pathname),
+    [location.pathname]
+  );
 
   return (
     <Drawer open={open} onClose={toggleDrawer(false)}>
@@ -29,6 +51,19 @@ function SidebarMenu({ open, setOpen }: RWState<'open', boolean>) {
             <Dashboard className={styles.icon} />
           </ListItemIcon>
           <ListItemText className={styles.text} primary={'Dashboard'} />
+        </ListItemButton>
+      </ListItem>
+      <ListItem disablePadding>
+        <ListItemButton
+          component={Link}
+          to={`/search`}
+          state={{ searchPath }}
+          onClick={toggleDrawer(false)}
+        >
+          <ListItemIcon>
+            <SearchIcon className={styles.icon} />
+          </ListItemIcon>
+          <ListItemText className={styles.text} primary={'Search'} />
         </ListItemButton>
       </ListItem>
       <ListItem disablePadding>
@@ -78,5 +113,3 @@ function SidebarMenu({ open, setOpen }: RWState<'open', boolean>) {
     </Drawer>
   );
 }
-
-export default SidebarMenu;

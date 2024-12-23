@@ -63,6 +63,10 @@ export class FileAccessService {
         size: stat.size,
         width: metainfo.width,
         height: metainfo.height,
+        orientation:
+          metainfo.width < metainfo.height
+            ? ('portrait' as const)
+            : ('landscape' as const),
         duration: metainfo.duration,
         createdAt: stat.birthtimeMs,
         syncedAt: Date.now()

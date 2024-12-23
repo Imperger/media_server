@@ -14,7 +14,7 @@ import { FolderCollectionService } from '@/folder-collection/folder-collection.s
 import { ArrayHelper } from '@/lib/array-helper';
 import { assetHash } from '@/lib/asset-hash';
 import { increment } from '@/lib/drizzle/increase';
-import { isNonEmptyArray } from '@/lib/non-empty_array';
+import { isNonEmptyArray } from '@/lib/non-empty-array';
 import { PathHelper } from '@/lib/PathHelper';
 import { AtLeastOne } from '@/lib/type-helper';
 import { TagFolderGlobal } from '@/meta-info/schemas/tag-folder.schema';

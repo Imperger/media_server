@@ -379,7 +379,9 @@ export function FragmentTagEditor({
   };
 
   const onDelete = async () => {
-    if (await metaInfo.detachFileFragmentTag(selectedTag, collectionId, filename)) {
+    if (
+      await metaInfo.detachFileFragmentTag(selectedTag, collectionId, filename)
+    ) {
       setAttachedTags(
         ArrayHelper.filterFirst(attachedTags, (x) => x.name !== selectedTag)
       );

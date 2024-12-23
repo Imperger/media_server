@@ -6,10 +6,14 @@ import Dashboard from './dashboard/Dashboard';
 import Layout from './layout/Layout';
 import OfflineCollection from './offline-collection/OfflineCollection';
 import Player from './player/player';
+import Search from './search/search';
 import Settings from './settings/Settings';
 import Tags from './tags/tags';
 
 import ClipApp from '@/apps/clip/clip-app';
+
+export type FolderCollectionPrefix = '/folder-collection';
+type FolderCollection = `${FolderCollectionPrefix}/:id/*`;
 
 const router = createBrowserRouter([
   {
@@ -21,7 +25,11 @@ const router = createBrowserRouter([
         element: <Dashboard />
       },
       {
-        path: '/folder-collection/:id/*',
+        path: '/search',
+        element: <Search />
+      },
+      {
+        path: '/folder-collection/:id/*' satisfies FolderCollection,
         element: <FolderCollection />
       },
       {

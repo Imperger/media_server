@@ -6,6 +6,8 @@ import { Inversify } from '../inversify';
 import { ClipAppService } from './clip-app-service';
 import { HttpClient } from './http-client';
 import { LiveFeed } from './live-feed';
+import { MetaInfoService } from './meta-info';
+import { SearchService } from './search.-service';
 
 export interface CreateCollectionResult {
   id: number;
@@ -46,6 +48,7 @@ export interface FileRecord {
   assetPrefix: string;
   createdAt: number;
 }
+
 interface FolderRecord {
   name: string;
   size: number;
@@ -86,7 +89,9 @@ export class ApiService {
 
   constructor(
     @inject(HttpClient) private readonly http: HttpClient,
-    @inject(ClipAppService) public readonly clipApp: ClipAppService
+    @inject(ClipAppService) public readonly clipApp: ClipAppService,
+    @inject(MetaInfoService) public readonly metaInfo: MetaInfoService,
+    @inject(SearchService) public readonly search: SearchService
   ) {
     this.liveFeed = new LiveFeed();
   }

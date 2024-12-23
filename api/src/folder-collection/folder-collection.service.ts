@@ -35,7 +35,9 @@ export interface FindFolderResult {
   syncedAt: number;
 }
 
-export interface FileRecordVariant extends FileRecord {
+type SafeFileRecord = Omit<FileRecord, 'id'>;
+
+export interface FileRecordVariant extends SafeFileRecord {
   type: 'file';
 }
 
@@ -44,6 +46,11 @@ export interface FolderRecordVariant extends FolderDescription {
 }
 
 export type FolderContentRecord = FileRecordVariant | FolderRecordVariant;
+
+export interface FolderCollection {
+  collectionId: number;
+  folder: string;
+}
 
 @Injectable()
 export class FolderCollectionService {
@@ -149,12 +156,14 @@ export class FolderCollectionService {
     }
   }
 
-  async GetAllFolders(): Promise<string[]> {
+  async GetAllFolders(): Promise<FolderCollection[]> {
     return this.db
-      .select({ folder: FolderCollection.folder })
+      .select({
+        collectionId: FolderCollection.id,
+        folder: FolderCollection.folder
+      })
       .from(FolderCollection)
-      .all()
-      .map((x) => x.folder);
+      .all();
   }
 
   async listFolderContent(
@@ -172,11 +181,15 @@ export class FolderCollectionService {
 
     const files = (
       await this.fileAccessService.list(targetFolder)
-    ).map<FileRecordVariant>((x) => ({
-      type: 'file',
-      ...x,
-      filename: `${collectionId}/${path.relative(collectionEntry, x.filename)}`
-    }));
+    ).map<FileRecordVariant>((x) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { id, ...record } = x;
+      return {
+        type: 'file',
+        ...record,
+        filename: `${collectionId}/${path.relative(collectionEntry, x.filename)}`
+      };
+    });
 
     const folders = (
       await this.folderAccess.list(targetFolder)
@@ -200,11 +213,15 @@ export class FolderCollectionService {
 
     const files = (
       await this.fileAccessService.listIncludeSubdiretories(targetFolder)
-    ).map<FileRecordVariant>((x) => ({
-      type: 'file',
-      ...x,
-      filename: `${collectionId}/${path.relative(collectionEntry, x.filename)}`
-    }));
+    ).map<FileRecordVariant>((x) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { id, ...record } = x;
+      return {
+        type: 'file',
+        ...record,
+        filename: `${collectionId}/${path.relative(collectionEntry, x.filename)}`
+      };
+    });
 
     return files;
   }
@@ -217,7 +234,7 @@ export class FolderCollectionService {
 
   private async IsFolderOverlapWithExising(folder: string): Promise<boolean> {
     return (await this.GetAllFolders()).some((x) =>
-      PathHelper.IsPathsOverlap(x, folder)
+      PathHelper.IsPathsOverlap(x.folder, folder)
     );
   }
 
