@@ -1,6 +1,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import {
   FastifyAdapter,
@@ -11,7 +12,6 @@ import { AppModule } from './app.module';
 import { AppExceptionFilter } from './lib/filters/app-exception.filter';
 import { FSHelper } from './lib/FSHelper';
 import { PathHelper } from './lib/PathHelper';
-import { DtoValidationPipe } from './lib/pipes/dto-validation.pipe';
 
 async function setupConfigFolder() {
   if (!(await FSHelper.isDirectory(PathHelper.mediaEntry))) {
@@ -61,7 +61,7 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
   app.useGlobalFilters(new AppExceptionFilter());
-  app.useGlobalPipes(new DtoValidationPipe());
+  app.useGlobalPipes(new ValidationPipe());
 
   await app.listen(3000, '0.0.0.0');
 }
