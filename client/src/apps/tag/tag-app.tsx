@@ -196,7 +196,7 @@ function TagAppFolder() {
         break;
       case 'delete':
         setTagTree(unmergeWithTagTree(e.name, { ...tagTree }));
-        setTags(ArrayHelper.filterFirst(tags, (x) => x.tag !== e.name));
+        setTags(ArrayHelper.discardFirst(tags, (x) => x.tag === e.name));
 
         break;
     }
@@ -209,7 +209,7 @@ function TagAppFolder() {
         break;
       case 'remove':
         setAttachedTags(
-          ArrayHelper.filterFirst(attachedTags, (x) => x !== e.name)
+          ArrayHelper.discardFirst(attachedTags, (x) => x === e.name)
         );
         break;
     }

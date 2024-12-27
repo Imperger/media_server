@@ -317,7 +317,7 @@ export default function Search() {
         break;
       case 'delete':
         setTagTree(unmergeWithTagTree(e.name, { ...tagTree }));
-        setTags(ArrayHelper.filterFirst(tags, (x) => x.tag !== e.name));
+        setTags(ArrayHelper.discardFirst(tags, (x) => x.tag === e.name));
 
         break;
     }
@@ -377,7 +377,7 @@ export default function Search() {
   };
 
   const removeAttribute = (id: number) => () =>
-    setAttributes(ArrayHelper.filterFirst(attributes, (x) => x.id !== id));
+    setAttributes(ArrayHelper.discardFirst(attributes, (x) => x.id === id));
 
   const searchRequest: SearchRequest = useMemo(() => {
     const mappedAttributes = attributes.flatMap((x) => {

@@ -92,7 +92,7 @@ function OfflineCollection() {
   const onCache = async (filename: string, action: 'cache' | 'evict') => {
     if (action === 'evict') {
       setSavedContent(
-        ArrayHelper.filterFirst(savedContent, (x) => x.filename !== filename)
+        ArrayHelper.discardFirst(savedContent, (x) => x.filename === filename)
       );
     }
   };

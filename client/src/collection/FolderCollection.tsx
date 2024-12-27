@@ -267,9 +267,9 @@ function FolderCollection() {
 
   const onDeleteFile = (filename: string) =>
     setContent(
-      ArrayHelper.filterFirst(
+      ArrayHelper.discardFirst(
         content,
-        (x) => !(x.type === 'file' && x.filename === filename)
+        (x) => x.type === 'file' && x.filename === filename
       )
     );
 
@@ -280,7 +280,7 @@ function FolderCollection() {
         break;
       case 'evict':
         setCachedFiles(
-          ArrayHelper.filterFirst(cachedFiles, (x) => x !== filename)
+          ArrayHelper.discardFirst(cachedFiles, (x) => x === filename)
         );
         break;
     }
@@ -288,9 +288,9 @@ function FolderCollection() {
 
   const onDeleteFolder = (name: string) =>
     setContent(
-      ArrayHelper.filterFirst(
+      ArrayHelper.discardFirst(
         content,
-        (x) => !(x.type === 'folder' && x.name === name)
+        (x) => x.type === 'folder' && x.name === name
       )
     );
 

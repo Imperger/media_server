@@ -219,7 +219,7 @@ export function FragmentTagEditor({
         break;
       case 'delete':
         setTagTree(unmergeWithTagTree(e.name, { ...tagTree }));
-        setTags(ArrayHelper.filterFirst(tags, (x) => x.tag !== e.name));
+        setTags(ArrayHelper.discardFirst(tags, (x) => x.tag === e.name));
 
         if (selectedTag === e.name) {
           setSelectedTag('');
@@ -270,7 +270,7 @@ export function FragmentTagEditor({
         break;
       case 'remove':
         setAttachedTags(
-          ArrayHelper.filterFirst(attachedTags, (x) => x.name !== e.name)
+          ArrayHelper.discardFirst(attachedTags, (x) => x.name === e.name)
         );
         break;
     }
@@ -383,7 +383,7 @@ export function FragmentTagEditor({
       await metaInfo.detachFileFragmentTag(selectedTag, collectionId, filename)
     ) {
       setAttachedTags(
-        ArrayHelper.filterFirst(attachedTags, (x) => x.name !== selectedTag)
+        ArrayHelper.discardFirst(attachedTags, (x) => x.name === selectedTag)
       );
 
       setSelectedTag('');

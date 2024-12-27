@@ -101,7 +101,7 @@ export default function Tags() {
         break;
       case 'delete':
         setTagTree(unmergeWithTagTree(e.name, { ...tagTree }));
-        setTags(ArrayHelper.filterFirst(tags, (x) => x.tag !== e.name));
+        setTags(ArrayHelper.discardFirst(tags, (x) => x.tag === e.name));
 
         if (selectedTag === e.name) {
           setSelectedTag('');
