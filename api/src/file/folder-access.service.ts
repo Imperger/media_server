@@ -278,7 +278,7 @@ export class FolderAccessService {
   async detachTags(folderId: number): Promise<void> {
     await this.db
       .delete(TagFolderGlobal)
-      .where(eq(TagFolderGlobal.id, folderId));
+      .where(eq(TagFolderGlobal.folderId, folderId));
   }
 
   private folderNameFromPath(path: string): string {
