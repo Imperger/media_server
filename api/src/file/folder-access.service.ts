@@ -206,7 +206,7 @@ export class FolderAccessService {
       .returning({ size: Folder.size, files: Folder.files });
 
     return isNonEmptyArray(removed)
-      ? ArrayHelper.max(removed, (a, b) => a.files < b.size)
+      ? ArrayHelper.max(removed, (a, b) => a.files < b.files)
       : null;
   }
 
