@@ -34,6 +34,11 @@ export interface RangeOptions {
   end?: number;
 }
 
+export interface GenerateAssetsOptions {
+  filename: string;
+  duration: number;
+}
+
 @Injectable()
 export class FileAccessService {
   constructor(
@@ -361,7 +366,7 @@ export class FileAccessService {
     ).map((x) => ({ ...x, assetPrefix: assetHash(x.filename) }));
   }
 
-  async generateAssets(file: FileRecord): Promise<boolean> {
+  async generateAssets(file: GenerateAssetsOptions): Promise<boolean> {
     return this.mediaTool.generateAssets(file.filename, {
       previewTimepoint: Math.round(file.duration / 10),
       assetPrefix: assetHash(file.filename)

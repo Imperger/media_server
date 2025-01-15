@@ -101,6 +101,11 @@ export class ClipService {
         const relativeToMediaOutput =
           PathHelper.relativeToMedia(outputAbsolutePath);
 
+        await this.fileAccess.generateAssets({
+          filename: relativeToMediaOutput,
+          duration: boundary.end - boundary.begin
+        });
+
         const file = await this.fileAccess.create(relativeToMediaOutput);
 
         if (file === null) {
@@ -116,8 +121,6 @@ export class ClipService {
           PathHelper.fileFolder(relativeToMediaOutput),
           { files: 1, size: file.size }
         );
-
-        await this.fileAccess.generateAssets(file);
       });
 
     return true;
