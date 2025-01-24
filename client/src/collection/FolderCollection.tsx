@@ -162,6 +162,10 @@ function extractKey(obj: FolderContentRecord, rule: SortRule) {
   }
 }
 
+function pathDepth(path: string) {
+  return IterableHelper.countIf(path, (x) => x === '/');
+}
+
 const api = Inversify.get(ApiService);
 
 function FolderCollection() {
@@ -178,6 +182,7 @@ function FolderCollection() {
     syncedAt: 0
   });
   const [cachedFiles, setCachedFiles] = useState<string[]>([]);
+  const [cachedFolders, setCachedFolders] = useState<string[]>([]);
 
   const setSortRule = (sortRule: SortRule) =>
     dispatch(updateSortRule(sortRule));
@@ -294,9 +299,15 @@ function FolderCollection() {
       )
     );
 
-  const isCached = (filename: string) => cachedFiles.includes(filename);
+  const isFileCached = (filename: string) => cachedFiles.includes(filename);
 
-  const isAvailable = (filename: string) => isOnline || isCached(filename);
+  const isFileAvailable = (filename: string) =>
+    isOnline || isFileCached(filename);
+
+  const isFolderCached = (basename: string) => cachedFolders.includes(basename);
+
+  const isFolderAvailable = (basename: string) =>
+    isOnline || isFolderCached(basename);
 
   useEffect(() => {
     const fetchFolderInfo = async () => {
@@ -307,9 +318,6 @@ function FolderCollection() {
   }, [id]);
 
   useEffect(() => {
-    const pathDepth = (path: string) =>
-      IterableHelper.countIf(path, (x) => x === '/');
-
     const fetchCachedFiles = async () => {
       setCachedFiles(
         await ContentCache.filterContent((filename) => {
@@ -325,6 +333,32 @@ function FolderCollection() {
 
     fetchCachedFiles();
   }, [id, path]);
+
+  useEffect(() => {
+    const updateOfflineFoldersAvailability = async () => {
+      if (isOnline) {
+        return;
+      }
+
+      const offlineFolders = await ContentCache.filterFolder(
+        (cachedPath: string) => {
+          const prefix = path === '' ? `${id}/` : `${id}/${path}/`;
+          const prefixDepth = pathDepth(prefix);
+
+          return (
+            cachedPath.startsWith(prefix) &&
+            pathDepth(cachedPath) === prefixDepth
+          );
+        }
+      );
+
+      setCachedFolders(
+        offlineFolders.map((x) => x.slice(x.lastIndexOf('/') + 1))
+      );
+    };
+
+    updateOfflineFoldersAvailability();
+  }, [id, path, isOnline]);
 
   return (
     <>
@@ -363,8 +397,8 @@ function FolderCollection() {
                   onRename={onRenameFile}
                   onDelete={onDeleteFile}
                   onCache={onCache}
-                  isAvailable={isAvailable(x.filename)}
-                  isCached={isCached(x.filename)}
+                  isAvailable={isFileAvailable(x.filename)}
+                  isCached={isFileCached(x.filename)}
                 />
               );
             case 'folder':
@@ -374,6 +408,7 @@ function FolderCollection() {
                   name={x.name}
                   size={x.size}
                   files={x.files}
+                  isAvailable={isFolderAvailable(x.name)}
                   preview={folderPreview(x.assetPrefix)}
                   onDelete={onDeleteFolder}
                 />

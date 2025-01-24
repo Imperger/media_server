@@ -38,12 +38,20 @@ export interface FolderCardProps {
   preview: string;
   size: number;
   files: number;
+  isAvailable: boolean;
   onDelete: (name: string) => void;
 }
 
 const api = Inversify.get(ApiService);
 
-function FolderCard({ name, size, files, onDelete, preview }: FolderCardProps) {
+function FolderCard({
+  name,
+  size,
+  files,
+  isAvailable,
+  onDelete,
+  preview
+}: FolderCardProps) {
   const baseURL = import.meta.env.BASE_URL;
   const { id, '*': path } = useParams();
   const { enqueueSnackbar } = useSnackbar();
@@ -67,6 +75,11 @@ function FolderCard({ name, size, files, onDelete, preview }: FolderCardProps) {
   const absolutePath = useMemo(
     () => `${id}/${relativePath}`,
     [id, relativePath]
+  );
+
+  const previewClassName = useMemo(
+    () => (isAvailable ? '' : styles.unavailable),
+    [isAvailable]
   );
 
   const deleteFolder = async () => {
@@ -120,16 +133,19 @@ function FolderCard({ name, size, files, onDelete, preview }: FolderCardProps) {
     closeMenu(e);
   };
 
+  const blockNavigation = (e: MouseEvent<HTMLElement>) => e.preventDefault();
+
   return (
     <>
       <Link
         data-index={name}
         component={RouterLink}
         to={`${pathPrefix}${name}`}
-        onClick={saveLastWacthed}
+        onClick={isAvailable ? saveLastWacthed : blockNavigation}
       >
         <Card className={styles.container} style={{ margin: '2px' }}>
           <CardMedia
+            className={previewClassName}
             component="img"
             height="140"
             image={preview}

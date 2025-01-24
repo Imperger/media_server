@@ -138,6 +138,19 @@ export class ContentCache {
       .map((x) => decodeURI(ContentCache.castToPathname(x)));
   }
 
+  static async filterFolder(
+    pred: (path: string) => boolean
+  ): Promise<string[]> {
+    const cache = await caches.open(ContentCache.cacheName);
+    const keys = await cache.keys();
+
+    return keys
+      .map((x) => ContentCache.castToPathname(x))
+      .filter((x) => ContentCache.isFolderKey(x))
+      .map((x) => ContentCache.folderPath(x))
+      .filter((x) => pred(x));
+  }
+
   static async filterContent(
     pred: (filename: string) => boolean
   ): Promise<string[]> {
@@ -221,6 +234,16 @@ export class ContentCache {
 
   private static contentPath(key: string): string {
     const pathnamePrefixLength = '/api/file/content/'.length;
+
+    return decodeURI(key.slice(pathnamePrefixLength));
+  }
+
+  private static isFolderKey(key: string): boolean {
+    return key.startsWith('/api/collection-folder/immediate/');
+  }
+
+  private static folderPath(key: string): string {
+    const pathnamePrefixLength = '/api/collection-folder/immediate/'.length;
 
     return decodeURI(key.slice(pathnamePrefixLength));
   }

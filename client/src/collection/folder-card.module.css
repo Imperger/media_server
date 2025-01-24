@@ -2,6 +2,10 @@
     position: relative;
 }
 
+.unavailable {
+    filter: grayscale(1);
+}
+
 .folder {
     right: 0;
     top: 0;
