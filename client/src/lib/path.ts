@@ -32,4 +32,8 @@ export class Path {
 
     return { collectionId, filename };
   }
+
+  static fullPath(collectionId: number, path: string): string {
+    return path.length ? `${collectionId}/${path}` : collectionId.toString();
+  }
 }

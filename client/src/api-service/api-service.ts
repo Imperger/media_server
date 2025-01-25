@@ -9,6 +9,9 @@ import { LiveFeed } from './live-feed';
 import { MetaInfoService } from './meta-info';
 import { SearchService } from './search.-service';
 
+import { ContentCache } from '@/lib/content-cache';
+import { Path } from '@/lib/path';
+
 export interface CreateCollectionResult {
   id: number;
   cover: string;
@@ -132,11 +135,21 @@ export class ApiService {
     collectionId: number,
     path: string
   ): Promise<FolderContentRecord[]> {
-    return (
+    const fullPath =
+      path === '' ? collectionId.toString() : `${collectionId}/${path}`;
+
+    const response = (
       await this.http.get<FolderContentRecord[]>(
-        `collection-folder/immediate/${collectionId}/${path}`
+        `collection-folder/immediate/${Path.fullPath(collectionId, path)}`
       )
     ).data;
+
+    ContentCache.evictDanglingFolderContentResponses(
+      fullPath,
+      response.filter((x) => x.type === 'folder').map((x) => x.name)
+    );
+
+    return response;
   }
 
   async listFolderCollectionAllContent(

@@ -48,6 +48,13 @@ export class FolderCollectionController {
     };
   }
 
+  @Get('immediate/:id')
+  async listRoot(
+    @Param('id', ParseIntPipe) id: number
+  ): Promise<FolderContentRecord[]> {
+    return this.collectionFolderService.listFolderContent(id, '');
+  }
+
   @Get('immediate/:id/*')
   async list(
     @Param('id', ParseIntPipe) id: number,

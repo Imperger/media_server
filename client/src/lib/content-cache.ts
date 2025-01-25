@@ -126,6 +126,37 @@ export class ContentCache {
   }
 
   /**
+   * Evict cached api responses for `collection-folder/immediate/[fullPath]`,
+   * that can be deduced as non-existent based on input
+   * @param fullPath path to a folder. Example: `1/abcd`
+   * @param basenames an array of basenames (folder names) inside the target folder. Example: ['efg', '123']
+   */
+  static async evictDanglingFolderContentResponses(
+    fullPath: string,
+    basenames: string[]
+  ): Promise<void> {
+    const cache = await caches.open(ContentCache.cacheName);
+    const keys = await cache.keys();
+
+    const existingPaths = basenames.map((x) => `${fullPath}/${x}`);
+
+    for (const key of keys) {
+      const pathname = ContentCache.castToPathname(key);
+      if (ContentCache.isFolderKey(pathname)) {
+        const path = ContentCache.folderPath(pathname);
+
+        if (
+          path !== fullPath &&
+          path.startsWith(fullPath) &&
+          existingPaths.every((x) => !path.startsWith(x))
+        ) {
+          await cache.delete(key);
+        }
+      }
+    }
+  }
+
+  /**
    * Throws away not cached urls
    * @param urls
    * @returns only cached urls
