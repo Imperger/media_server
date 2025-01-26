@@ -5,7 +5,7 @@ import { Injectable } from '@nestjs/common';
 import { MissingVideoStreamException } from './exceptions';
 
 import { ClipBoundary, Ffmpeg } from '@/lib/ffmpeg/ffmpeg';
-import { PathHelper } from '@/lib/PathHelper';
+import { PathHelper } from '@/lib/path-helper';
 
 export interface VideoMetainfo {
   width: number;

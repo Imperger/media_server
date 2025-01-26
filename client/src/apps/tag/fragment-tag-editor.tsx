@@ -14,7 +14,7 @@ import {
 } from '@/api-service/live-feed';
 import { FragmentTag, MetaInfoService, Tag } from '@/api-service/meta-info';
 import { Inversify } from '@/inversify';
-import { ArrayHelper } from '@/lib/ArrayHelper';
+import { ArrayHelper } from '@/lib/array-helper';
 import CloseBracketIcon from '@/lib/components/icons/close-bracket-icon';
 import OpenBracketIcon from '@/lib/components/icons/open-bracket-icon';
 import { TagTree } from '@/lib/components/tag-tree/tag-tree';

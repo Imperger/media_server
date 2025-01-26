@@ -31,9 +31,9 @@ import { Link as RouterLink } from 'react-router-dom';
 import { useAppDispatch } from '../hooks';
 import { formatDuration } from '../lib/format-duration';
 
-import { DeleteConfirmDialog } from './DeleteConfirmDialog';
+import { DeleteConfirmDialog } from './delete-confirm-dialog';
 import styles from './file-card.module.css';
-import FileInfoDialog from './FileInfoDialog';
+import FileInfoDialog from './file-info-dialog';
 import OpenWithFileDialog from './open-with-file-dialog';
 import RenameDialog from './rename-dialog';
 import { updateLastWatched } from './store/last-watched';

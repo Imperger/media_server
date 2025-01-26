@@ -1,13 +1,13 @@
 import { createBrowserRouter } from 'react-router-dom';
 
 import TagApp from './apps/tag/tag-app';
-import FolderCollection from './collection/FolderCollection';
-import Dashboard from './dashboard/Dashboard';
-import Layout from './layout/Layout';
-import OfflineCollection from './offline-collection/OfflineCollection';
+import FolderCollection from './collection/folder-collection';
+import Dashboard from './dashboard/dashboard';
+import Layout from './layout/layout';
+import OfflineCollection from './offline-collection/offline-collection';
 import Player from './player/player';
 import Search from './search/search';
-import Settings from './settings/Settings';
+import Settings from './settings/settings';
 import Tags from './tags/tags';
 
 import ClipApp from '@/apps/clip/clip-app';

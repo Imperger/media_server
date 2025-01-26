@@ -1,5 +1,5 @@
 import type { TagStyle } from '@/api-service/meta-info';
-import { ArrayHelper } from '@/lib/ArrayHelper';
+import { ArrayHelper } from '@/lib/array-helper';
 import { MaxClique } from '@/lib/max-clique';
 
 export interface Tag {

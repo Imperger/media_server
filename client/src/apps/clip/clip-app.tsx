@@ -9,7 +9,7 @@ import { ClipBoundary } from './types';
 
 import { ClipAppService } from '@/api-service/clip-app-service';
 import { Inversify } from '@/inversify';
-import { useTitle } from '@/layout/TitleContext';
+import { useTitle } from '@/layout/title-context';
 import CloseBracketIcon from '@/lib/components/icons/close-bracket-icon';
 import OpenBracketIcon from '@/lib/components/icons/open-bracket-icon';
 import { formatDuration } from '@/lib/format-duration';

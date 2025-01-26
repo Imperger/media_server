@@ -2,11 +2,11 @@ import prettyBytes from 'pretty-bytes';
 import { useEffect, useMemo, useState } from 'react';
 
 import { ApiService, FileRecord } from '../api-service/api-service';
-import FileCard from '../collection/FileCard';
-import { useTitle } from '../layout/TitleContext';
-import { ArrayHelper } from '../lib/ArrayHelper';
+import FileCard from '../collection/file-card';
+import { useTitle } from '../layout/title-context';
+import { ArrayHelper } from '../lib/array-helper';
 import { less } from '../lib/comparator';
-import ContentList from '../lib/components/content-list/ContentList';
+import ContentList from '../lib/components/content-list/content-list';
 import { ContentCache } from '../lib/content-cache';
 import { AsyncExceptionTrap } from '../lib/exception-trap';
 import { parseFilename } from '../lib/parse-filename';

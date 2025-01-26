@@ -17,7 +17,7 @@ import { FileAccessService } from './file-access.service';
 import { FolderAccessService } from './folder-access.service';
 import { CacheControlGuard } from './guards/cache-control.guard';
 
-import { PathHelper } from '@/lib/PathHelper';
+import { PathHelper } from '@/lib/path-helper';
 
 @Controller('folder')
 export class FolderController {

@@ -1,7 +1,7 @@
 import { Button, Stack, TextField } from '@mui/material';
 import { match } from 'ts-pattern';
 
-import FileSizeIcon from '@/lib/components/icons/FileSizeIcon';
+import FileSizeIcon from '@/lib/components/icons/file-size-icon';
 import { isInteger } from '@/lib/is-integer';
 import { NativeRWState } from '@/lib/rw-state';
 

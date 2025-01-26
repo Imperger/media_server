@@ -37,7 +37,7 @@ import {
 import { assetHash } from '@/lib/asset-hash';
 import { weightedDamerauLevenshtein, Weights } from '@/lib/damerau-levenshtein';
 import { ExceptionTrap } from '@/lib/exception-trap';
-import { PathHelper } from '@/lib/PathHelper';
+import { PathHelper } from '@/lib/path-helper';
 import { TagFileFragment } from '@/meta-info/schemas/tag-file-fragment.schema';
 import { TagFileGlobal } from '@/meta-info/schemas/tag-file-global.schema';
 import { TagFolderGlobal } from '@/meta-info/schemas/tag-folder.schema';

@@ -8,8 +8,8 @@ import { FileAccessService } from './file-access.service';
 import { FolderAccessService } from './folder-access.service';
 import { File } from './schemas/file.schema';
 
-import { FSHelper } from '@/lib/FSHelper';
-import { PathHelper } from '@/lib/PathHelper';
+import { FSHelper } from '@/lib/fs-helper';
+import { PathHelper } from '@/lib/path-helper';
 import { SyncProgressDecoratorService } from '@/live-feed/sync-progress-decorator.service';
 
 interface FolderInitState {

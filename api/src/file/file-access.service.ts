@@ -12,8 +12,8 @@ import { File } from './schemas/file.schema';
 
 import { FolderCollectionService } from '@/folder-collection/folder-collection.service';
 import { assetHash } from '@/lib/asset-hash';
-import { FSHelper } from '@/lib/FSHelper';
-import { PathHelper } from '@/lib/PathHelper';
+import { FSHelper } from '@/lib/fs-helper';
+import { PathHelper } from '@/lib/path-helper';
 import { MediaToolService } from '@/media-tool/media-tool.service';
 import { TagFileFragment } from '@/meta-info/schemas/tag-file-fragment.schema';
 import { TagFileGlobal } from '@/meta-info/schemas/tag-file-global.schema';

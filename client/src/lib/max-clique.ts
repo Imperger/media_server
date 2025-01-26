@@ -2,7 +2,7 @@
  * http://insilab.org/maxclique/
  */
 
-import { ArrayHelper } from './ArrayHelper';
+import { ArrayHelper } from './array-helper';
 
 class ColorClass {
   private i: number[] = [];

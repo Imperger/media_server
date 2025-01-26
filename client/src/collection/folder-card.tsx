@@ -24,7 +24,7 @@ import { Link as RouterLink, useParams } from 'react-router-dom';
 import { useAppDispatch } from '../hooks';
 import { ContentCache } from '../lib/content-cache';
 
-import { DeleteConfirmDialog } from './DeleteConfirmDialog';
+import { DeleteConfirmDialog } from './delete-confirm-dialog';
 import styles from './folder-card.module.css';
 import OpenWithFolderDialog from './open-with-folder-dialog';
 import { resetLastWatched } from './store/last-watched';

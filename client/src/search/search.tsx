@@ -40,12 +40,12 @@ import {
   SearchResult
 } from '@/api-service/search.-service';
 import { AddTagDialog } from '@/apps/tag/add-tag-dialog';
-import FileCard from '@/collection/FileCard';
+import FileCard from '@/collection/file-card';
 import { Inversify } from '@/inversify';
-import { useTitle } from '@/layout/TitleContext';
-import { ArrayHelper } from '@/lib/ArrayHelper';
+import { useTitle } from '@/layout/title-context';
+import { ArrayHelper } from '@/lib/array-helper';
 import { less } from '@/lib/comparator';
-import ContentList from '@/lib/components/content-list/ContentList';
+import ContentList from '@/lib/components/content-list/content-list';
 import RegexIcon from '@/lib/components/icons/regex-icon';
 import { TagTree } from '@/lib/components/tag-tree/tag-tree';
 import { dotArrayToTree } from '@/lib/dot-array-to-tree';

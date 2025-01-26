@@ -10,8 +10,8 @@ import {
 
 import { AppModule } from './app.module';
 import { AppExceptionFilter } from './lib/filters/app-exception.filter';
-import { FSHelper } from './lib/FSHelper';
-import { PathHelper } from './lib/PathHelper';
+import { FSHelper } from './lib/fs-helper';
+import { PathHelper } from './lib/path-helper';
 
 async function setupConfigFolder() {
   if (!(await FSHelper.isDirectory(PathHelper.mediaEntry))) {

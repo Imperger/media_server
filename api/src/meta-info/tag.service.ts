@@ -10,7 +10,7 @@ import { TagFolderGlobal } from './schemas/tag-folder.schema';
 import { Tag } from './schemas/tag.schema';
 
 import { AsyncExceptionTrap } from '@/lib/exception-trap';
-import { Transaction } from '@/lib/Transaction';
+import { Transaction } from '@/lib/transaction';
 import { LiveFeedService } from '@/live-feed/live-feed.service';
 
 export interface TagStyle {

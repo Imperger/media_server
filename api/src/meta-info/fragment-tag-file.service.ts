@@ -14,7 +14,7 @@ import { TagService, TagStyle } from './tag.service';
 import { FileNotFoundException } from '@/file/exceptions';
 import { FileAccessService } from '@/file/file-access.service';
 import { TagParser } from '@/lib/tag-parser';
-import { Transaction } from '@/lib/Transaction';
+import { Transaction } from '@/lib/transaction';
 import { LiveFeedService } from '@/live-feed/live-feed.service';
 
 export interface TagAttachment {

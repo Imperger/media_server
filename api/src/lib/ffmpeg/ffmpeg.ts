@@ -1,7 +1,7 @@
 import { spawn } from 'child_process';
 import { Transform, TransformCallback } from 'stream';
 
-import { FSHelper } from '../FSHelper';
+import { FSHelper } from '../fs-helper';
 
 export interface Disposition {
   default: number;

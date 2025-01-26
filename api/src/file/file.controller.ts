@@ -26,7 +26,7 @@ import { FileAccessService, RangeOptions } from './file-access.service';
 import { CacheControlGuard } from './guards/cache-control.guard';
 
 import { assetHash } from '@/lib/asset-hash';
-import { PathHelper } from '@/lib/PathHelper';
+import { PathHelper } from '@/lib/path-helper';
 
 @Controller('file')
 export class FileController {

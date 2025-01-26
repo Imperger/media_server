@@ -19,7 +19,7 @@ import { ApiService } from '@/api-service/api-service';
 import { OnTagUpdate, TagUpdateEvent } from '@/api-service/live-feed';
 import { MetaInfoService, Tag, TagStyle } from '@/api-service/meta-info';
 import { Inversify } from '@/inversify';
-import { ArrayHelper } from '@/lib/ArrayHelper';
+import { ArrayHelper } from '@/lib/array-helper';
 import { TagTree } from '@/lib/components/tag-tree/tag-tree';
 import { dotArrayToTree } from '@/lib/dot-array-to-tree';
 

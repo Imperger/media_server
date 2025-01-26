@@ -25,17 +25,17 @@ import {
 } from '../api-service/api-service';
 import { useOnline } from '../api-service/use-online';
 import { useAppDispatch, useAppSelector } from '../hooks';
-import { useTitle } from '../layout/TitleContext';
-import { ArrayHelper } from '../lib/ArrayHelper';
+import { useTitle } from '../layout/title-context';
+import { ArrayHelper } from '../lib/array-helper';
 import { greater, less } from '../lib/comparator';
-import ContentList from '../lib/components/content-list/ContentList';
-import FileSizeIcon from '../lib/components/icons/FileSizeIcon';
+import ContentList from '../lib/components/content-list/content-list';
+import FileSizeIcon from '../lib/components/icons/file-size-icon';
 import { ContentCache } from '../lib/content-cache';
 import { IterableHelper } from '../lib/iterable-helper';
 
-import FileCard from './FileCard';
+import FileCard from './file-card';
+import FolderCard from './folder-card';
 import styles from './folder-collection.module.css';
-import FolderCard from './FolderCard';
 import { SortRule, updateSortRule } from './store/sort-rule';
 
 import { Inversify } from '@/inversify';

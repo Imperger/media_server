@@ -23,9 +23,9 @@ import {
   FolderAccessService,
   FolderDescription
 } from '@/file/folder-access.service';
-import { FSHelper } from '@/lib/FSHelper';
-import { PathHelper } from '@/lib/PathHelper';
-import { Transaction } from '@/lib/Transaction';
+import { FSHelper } from '@/lib/fs-helper';
+import { PathHelper } from '@/lib/path-helper';
+import { Transaction } from '@/lib/transaction';
 import { LiveFeedService } from '@/live-feed/live-feed.service';
 
 export interface FindFolderResult {

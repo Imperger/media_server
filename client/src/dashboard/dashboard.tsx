@@ -8,14 +8,14 @@ import {
   CollectionRecord,
   CollectionType
 } from '../api-service/api-service';
-import { useTitle } from '../layout/TitleContext';
+import { useTitle } from '../layout/title-context';
 import { less } from '../lib/comparator';
-import { RejectedResponse } from '../lib/RejectedResponse';
+import { RejectedResponse } from '../lib/rejected-response';
 
-import AddViewCard from './AddCollectionCard';
-import AddCollectionDialog from './AddCollectionDialog';
+import AddViewCard from './add-collection-card';
+import AddCollectionDialog from './add-collection-dialog';
 import styles from './dashboard.module.css';
-import FolderCollectionCard from './FolderCollectionCard';
+import FolderCollectionCard from './folder-collection-card';
 import { CreateCollectionParameters } from './type';
 
 import { Inversify } from '@/inversify';

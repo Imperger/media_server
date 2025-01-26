@@ -13,7 +13,7 @@ import prettyBytes from 'pretty-bytes';
 import { MouseEvent, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { DeleteConfirmDialog } from '../collection/DeleteConfirmDialog';
+import { DeleteConfirmDialog } from '../collection/delete-confirm-dialog';
 import { formatDuration } from '../lib/format-duration';
 
 import styles from './folder-collection-card.module.css';

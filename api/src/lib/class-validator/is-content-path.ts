@@ -4,7 +4,7 @@ import {
   ValidationArguments
 } from 'class-validator';
 
-import { PathHelper } from '../PathHelper';
+import { PathHelper } from '../path-helper';
 
 export function IsContentPath(validationOptions?: ValidationOptions) {
   return function (object: object, propertyName: string) {

@@ -10,7 +10,7 @@ import { Collection } from './schemas/collection.schema';
 import { Folder } from '@/file/schemas/folder.schema';
 import { FolderCollection } from '@/folder-collection/schemas/folder-collection.schema';
 import { coalesce } from '@/lib/drizzle/coalesce';
-import { PathHelper } from '@/lib/PathHelper';
+import { PathHelper } from '@/lib/path-helper';
 
 export interface CreateCollectionResult {
   id: number;

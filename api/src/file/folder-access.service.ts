@@ -15,7 +15,7 @@ import { ArrayHelper } from '@/lib/array-helper';
 import { assetHash } from '@/lib/asset-hash';
 import { increment } from '@/lib/drizzle/increase';
 import { isNonEmptyArray } from '@/lib/non-empty-array';
-import { PathHelper } from '@/lib/PathHelper';
+import { PathHelper } from '@/lib/path-helper';
 import { AtLeastOne } from '@/lib/type-helper';
 import { TagFolderGlobal } from '@/meta-info/schemas/tag-folder.schema';
 

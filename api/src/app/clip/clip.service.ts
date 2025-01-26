@@ -6,8 +6,8 @@ import { FileAccessService } from '@/file/file-access.service';
 import { FolderAccessService } from '@/file/folder-access.service';
 import { FolderCollectionService } from '@/folder-collection/folder-collection.service';
 import { ClipBoundary } from '@/lib/ffmpeg/ffmpeg';
-import { FSHelper } from '@/lib/FSHelper';
-import { PathHelper } from '@/lib/PathHelper';
+import { FSHelper } from '@/lib/fs-helper';
+import { PathHelper } from '@/lib/path-helper';
 import { MediaToolService } from '@/media-tool/media-tool.service';
 
 export interface FileRecord {

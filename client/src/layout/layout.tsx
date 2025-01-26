@@ -11,8 +11,8 @@ import { Outlet } from 'react-router-dom';
 
 import { useOnline } from '../api-service/use-online';
 
-import SidebarMenu from './SidebarMenu';
-import { TitleContext } from './TitleContext';
+import SidebarMenu from './sidebar-menu';
+import { TitleContext } from './title-context';
 
 function Layout() {
   const [title, setTitle] = useState('');
