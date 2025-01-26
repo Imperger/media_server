@@ -80,7 +80,7 @@ function ScrubbingOverlay({
     >
       <Box
         component="img"
-        sx={{ position: 'absolute', height: '100%', left: `${offsetX}px` }}
+        style={{ position: 'absolute', height: '100%', left: `${offsetX}px` }}
         src={scrubbingStripeUrl}
       ></Box>
     </Box>

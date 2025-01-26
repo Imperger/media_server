@@ -187,7 +187,7 @@ export default function FilmStrip({
     <Box ref={stripRef} className={styles.filmStrip}>
       <Box className={styles.scrubbingImageContainer}>
         <Box
-          sx={{
+          style={{
             left: beginClipBoundary,
             width: endClipBoundary - beginClipBoundary
           }}

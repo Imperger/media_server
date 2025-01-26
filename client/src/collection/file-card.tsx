@@ -352,7 +352,7 @@ function FileCard(props: FileCardProps) {
           </Typography>
           {isDownloading && (
             <Typography
-              sx={{ clipPath: titleDownloadProgressClipPath }}
+              style={{ clipPath: titleDownloadProgressClipPath }}
               className={`${styles.title} ${styles.titleCached}`}
               gutterBottom
               variant="h5"

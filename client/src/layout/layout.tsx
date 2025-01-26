@@ -44,7 +44,7 @@ function Layout() {
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
               {title}
             </Typography>
-            <Circle sx={{ color: onlineIconColor }} />
+            <Circle style={{ color: onlineIconColor }} />
             <SidebarMenu open={open} setOpen={setOpen} />
           </Toolbar>
         </AppBar>

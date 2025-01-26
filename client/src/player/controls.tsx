@@ -109,7 +109,7 @@ const Controls = memo(
     useEffect(() => setVolume(playerSettings.volume.value), []);
 
     return (
-      <Box className={styles.controls} sx={{ opacity: +shown }}>
+      <Box className={styles.controls} style={{ opacity: +shown }}>
         <SeekBar
           playTime={playTime}
           duration={duration}

@@ -234,7 +234,7 @@ const SeekBar = memo(
         onTouchStart={onTouchSeekStart}
       >
         <Box
-          sx={{ width: `${seekWidth}px` }}
+          style={{ width: `${seekWidth}px` }}
           className={styles.seekProgress}
         ></Box>
       </Box>

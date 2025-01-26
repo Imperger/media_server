@@ -403,7 +403,7 @@ function Player({ playMode, filename: filenameProp, onInit }: PlayerProps) {
         autoPlay
       ></video>
       <ScrubbingOverlay
-        sx={{
+        style={{
           left: `${scrubbingOverlayX}px`,
           top: `${scrubbingOverlayY}px`,
           width: `${scrubbingOverlayWidth}px`,
