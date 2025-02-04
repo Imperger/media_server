@@ -1,6 +1,10 @@
 declare let self: ServiceWorkerGlobalScope & Window & typeof globalThis;
 
-import { cacheNames, setCacheNameDetails } from 'workbox-core';
+import {
+  cacheNames,
+  RouteMatchCallbackOptions,
+  setCacheNameDetails
+} from 'workbox-core';
 import {
   createHandlerBoundToURL,
   cleanupOutdatedCaches,
@@ -90,7 +94,14 @@ class NetworkFirstWithManualPrecaching extends Strategy {
       }
 
       const cache = await caches.open(cacheNames.runtime);
-      const cachedResponse = await cache.match(request);
+
+      const requestHandler =
+        request.method === 'HEAD'
+          ? (req: Request, cache: Cache) => this.handleHead(req, cache)
+          : (req: Request, cache: Cache) => this.handleOther(req, cache);
+
+      const cachedResponse = await requestHandler(request, cache);
+
       if (cachedResponse) {
         return cachedResponse;
       } else {
@@ -102,6 +113,32 @@ class NetworkFirstWithManualPrecaching extends Strategy {
     } catch (error) {
       console.error(error);
     }
+  }
+
+  async handleHead(request: Request, cache: Cache): Promise<Response | null> {
+    const cachedResponse = await cache.match(
+      new Request(request.url, { method: 'GET' })
+    );
+
+    if (!cachedResponse) {
+      return null;
+    }
+
+    return new Response(null, {
+      status: cachedResponse.status,
+      statusText: cachedResponse.statusText,
+      headers: cachedResponse.headers
+    });
+  }
+
+  async handleOther(request: Request, cache: Cache): Promise<Response | null> {
+    const cachedResponse = await cache.match(request);
+
+    if (!cachedResponse) {
+      return null;
+    }
+
+    return cachedResponse;
   }
 }
 
@@ -138,7 +175,7 @@ registerRoute(({ url }) => {
   return apiEdnpoints.some((endpoint) => url.pathname.startsWith(endpoint));
 }, new NetworkFirstWithAutoPrecaching());
 
-registerRoute(({ url }) => {
+const contentUrlMatcher = ({ url }: RouteMatchCallbackOptions) => {
   const contentEndpoints = [
     '/api/file/content/',
     '/api/file/preview/',
@@ -147,4 +184,12 @@ registerRoute(({ url }) => {
   ];
 
   return contentEndpoints.some((endpoint) => url.pathname.startsWith(endpoint));
-}, new NetworkFirstWithManualPrecaching());
+};
+
+registerRoute(contentUrlMatcher, new NetworkFirstWithManualPrecaching(), 'GET');
+
+registerRoute(
+  contentUrlMatcher,
+  new NetworkFirstWithManualPrecaching(),
+  'HEAD'
+);
