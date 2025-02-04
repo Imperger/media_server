@@ -14,6 +14,7 @@ import { ScrubbingMethod } from './store/player';
 
 import { useAppSelector } from '@/hooks';
 import { useResize } from '@/lib/hooks/use-resize';
+import { MathHelper } from '@/lib/math-helper';
 
 type OnSeekMove = (offsetX: number) => void;
 type OnSeekEnd = () => void;
@@ -64,9 +65,13 @@ const SeekBar = memo(
         return 0;
       }
 
-      return isSeeking && scrubbingMethod === 'stripe'
-        ? latestSeekOffset
-        : (playTime / duration) * seekContainerRef.current.clientWidth;
+      return MathHelper.clamp(
+        isSeeking && scrubbingMethod === 'stripe'
+          ? latestSeekOffset
+          : (playTime / duration) * seekContainerRef.current.clientWidth,
+        0,
+        seekContainerRef.current.clientWidth
+      );
     }, [
       scrubbingMethod,
       isSeeking,
