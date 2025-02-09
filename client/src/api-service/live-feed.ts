@@ -1,4 +1,4 @@
-import { Socket, io } from 'socket.io-client';
+import { Socket, Manager } from 'socket.io-client';
 
 import { TagStyle } from './meta-info';
 
@@ -82,11 +82,18 @@ export type OnlineListener = (isOnline: boolean) => void;
 
 type Unsubscriber = () => void;
 
+type AnyListener = (payload: unknown) => void;
+
 export class LiveFeed {
   private socket: Socket;
 
+  private subscriptions: Map<LiveEvent, AnyListener> = new Map();
+
   constructor() {
-    this.socket = io('/live_feed', {});
+    const manager = new Manager('', {});
+    this.socket = manager.socket('/live_feed');
+
+    manager.on('reconnect', () => this.onReconnect());
   }
 
   onOnline(listener: OnlineListener): Unsubscriber {
@@ -116,10 +123,14 @@ export class LiveFeed {
       this.socket.on(event, listener);
     }
 
+    this.subscriptions.set(event, listener as AnyListener);
+
     return result;
   }
 
   async unsubscribe(event: LiveEvent) {
+    this.subscriptions.delete(event);
+
     this.socket.emit('unsubscribe', event);
 
     this.socket.off(event);
@@ -127,5 +138,9 @@ export class LiveFeed {
 
   get isOnline(): boolean {
     return this.socket.connected;
+  }
+
+  private onReconnect(): void {
+    this.subscriptions.forEach((fn, e) => this.subscribe(e, fn));
   }
 }
