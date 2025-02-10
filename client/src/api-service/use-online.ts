@@ -7,16 +7,12 @@ import { Inversify } from '@/inversify';
 const api = Inversify.get(ApiService);
 
 export function useOnline() {
-  const [isOnline, setIsOnline] = useState(false);
+  const [isOnline, setIsOnline] = useState(api.liveFeed.isOnline);
 
-  useEffect(() => {
-    const onOnline = (isOnline: boolean) => setIsOnline(isOnline);
-    const unsub = api.liveFeed.onOnline(onOnline);
-
-    setIsOnline(api.liveFeed.isOnline);
-
-    return () => unsub();
-  }, []);
+  useEffect(
+    () => api.liveFeed.onOnline((isOnline: boolean) => setIsOnline(isOnline)),
+    []
+  );
 
   return isOnline;
 }
