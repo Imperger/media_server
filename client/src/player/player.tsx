@@ -120,13 +120,16 @@ function Player({ playMode, filename: filenameProp, onInit }: PlayerProps) {
     const fillAvailablePlaylist = async () => {
       const cachedFiles = await ContentCache.keep(playlist.map((x) => x.url));
       if (!cancelator) {
-        setAvailablePlaylist(
-          ArrayHelper.mergeWithFiltered(
-            playlist,
-            cachedFiles,
-            (o, f) => o.url === f
-          )
+        const offlinePlaylist = ArrayHelper.mergeWithFiltered(
+          playlist,
+          cachedFiles,
+          (o, f) => o.url === f
         );
+
+        const newPlayingIdx = offlinePlaylist.findIndex((x) => x.url === src);
+
+        setPlayingIdx(newPlayingIdx !== -1 ? newPlayingIdx : 0);
+        setAvailablePlaylist(offlinePlaylist);
       }
     };
     fillAvailablePlaylist();
