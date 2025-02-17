@@ -9,10 +9,10 @@ const api = Inversify.get(ApiService);
 export function useOnline() {
   const [isOnline, setIsOnline] = useState(api.liveFeed.isOnline);
 
-  useEffect(
-    () => api.liveFeed.onOnline((isOnline: boolean) => setIsOnline(isOnline)),
-    []
-  );
+  useEffect(() => {
+    setIsOnline(api.liveFeed.isOnline);
+    return api.liveFeed.onOnline((isOnline: boolean) => setIsOnline(isOnline));
+  }, []);
 
   return isOnline;
 }
