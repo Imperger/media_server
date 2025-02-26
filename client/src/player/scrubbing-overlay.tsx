@@ -45,7 +45,7 @@ function ScrubbingOverlay({
 
   useEffect(() => {
     const setup = async () => {
-      const frameWidth = Math.ceil(stripeDimension.height * videoAspectRatio);
+      const frameWidth = Math.round(stripeDimension.height * videoAspectRatio);
       const framesOnStrip = Math.floor(stripeDimension.width / frameWidth);
 
       setStripeDimension(stripeDimension);
