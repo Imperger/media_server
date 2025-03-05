@@ -54,6 +54,7 @@ export type OnGlobalTagUpdate = (e: GlobalTagUpdateEvent) => void;
 
 export interface AddFragmentTagEvent {
   type: 'add';
+  id: number;
   name: string;
   begin: number;
   end: number;
@@ -62,14 +63,14 @@ export interface AddFragmentTagEvent {
 
 export interface UpdateFragmentTagEvent {
   type: 'update';
-  tag: string;
+  id: number;
   begin?: number;
   end?: number;
 }
 
 export interface RemoveFragmentTagEvent {
   type: 'remove';
-  name: string;
+  id: number;
 }
 
 export type FragmentTagUpdateEvent =

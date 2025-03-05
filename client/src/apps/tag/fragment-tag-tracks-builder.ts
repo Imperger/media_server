@@ -1,20 +1,18 @@
-import type { TagStyle } from '@/api-service/meta-info';
 import { ArrayHelper } from '@/lib/array-helper';
 import { MaxClique } from '@/lib/max-clique';
 
 export interface Tag {
-  path: string;
+  name: string;
   begin: number;
   end: number;
-  style: TagStyle;
 }
 
 interface DecopuledTag extends Tag {
-  name: string;
+  label: string;
   category: string;
 }
 
-export type TagStripe = Tag[];
+export type TagStripe<T extends Tag> = T[];
 
 export class FragmentTagTracksBuilder {
   /**
@@ -24,7 +22,7 @@ export class FragmentTagTracksBuilder {
    * @param tags
    * @returns
    */
-  static build(tags: Tag[]): TagStripe[] {
+  static build<T extends Tag>(tags: T[]): TagStripe<T>[] {
     if (tags.length === 0) {
       return [];
     }
@@ -32,10 +30,10 @@ export class FragmentTagTracksBuilder {
     const byCategory = new Map<string, DecopuledTag[]>();
 
     tags.forEach((x) => {
-      const nameSep = x.path.lastIndexOf('.');
+      const nameSep = x.name.lastIndexOf('.');
       const decoupled = {
-        category: x.path.substring(0, nameSep),
-        name: x.path.substring(nameSep + 1),
+        category: x.name.substring(0, nameSep),
+        label: x.name.substring(nameSep + 1),
         ...x
       };
 
@@ -54,12 +52,7 @@ export class FragmentTagTracksBuilder {
 
     if (byCategory.size === 1) {
       return [...byCategory.values()].map((x) =>
-        x.map((x) => ({
-          path: x.path,
-          begin: x.begin,
-          end: x.end,
-          style: x.style
-        }))
+        x.map(({ label: _0, category: _1, ...data }) => data as T)
       );
     }
 
@@ -142,7 +135,11 @@ export class FragmentTagTracksBuilder {
 
     return mergedCategories.map((mergedIds) =>
       ArrayHelper.mergeArrays(
-        mergedIds.map((x) => byCategory.get(categories[x])!),
+        mergedIds.map((x) =>
+          byCategory
+            .get(categories[x])!
+            .map(({ label: _0, category: _1, ...data }) => data as T)
+        ),
         (a, b) => a.begin < b.begin
       )
     );

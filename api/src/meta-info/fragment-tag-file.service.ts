@@ -4,7 +4,6 @@ import { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 
 import {
   FragmentTagCollisionException,
-  InvalidTagNameException,
   TagNotFoundException
 } from './exceptions';
 import { TagFileFragment } from './schemas/tag-file-fragment.schema';
@@ -24,12 +23,13 @@ export interface TagAttachment {
 }
 
 export interface TagUpdate {
-  tag: string;
+  id: number;
   begin?: number;
   end?: number;
 }
 
 export interface Tag {
+  id: number;
   name: string;
   begin: number;
   end: number;
@@ -58,7 +58,7 @@ export class FragmentTagFileService {
     collectionId: number,
     filename: string,
     { tag, begin, end }: TagAttachment
-  ): Promise<void> {
+  ): Promise<number> {
     const tagDesc = await this.tag.findWithProps(tag);
 
     if (tagDesc === null) {
@@ -71,7 +71,7 @@ export class FragmentTagFileService {
       throw new FileNotFoundException();
     }
 
-    await Transaction(this.db, async () => {
+    const tagId = await Transaction(this.db, async () => {
       const depth = TagParser.depth(tag);
       const subcategoryFilter = `${TagParser.subcategory(tag)}.%`;
 
@@ -92,12 +92,6 @@ export class FragmentTagFileService {
           )
       ).filter((x) => TagParser.depth(x.name!) === depth) as Tag[];
 
-      const alreadyAttached = sameSubcategoryRanges.some((x) => x.name === tag);
-
-      if (alreadyAttached) {
-        throw new InvalidTagNameException();
-      }
-
       const intersectsWithSubcategory = sameSubcategoryRanges.some((x) =>
         FragmentTagFileService.intersection(x, { begin, end })
       );
@@ -106,28 +100,40 @@ export class FragmentTagFileService {
         throw new FragmentTagCollisionException();
       }
 
-      await this.db
-        .insert(TagFileFragment)
-        .values({ fileId: targetFile.id, tagId: tagDesc.id, begin, end });
+      return (
+        await this.db
+          .insert(TagFileFragment)
+          .values({ fileId: targetFile.id, tagId: tagDesc.id, begin, end })
+          .returning({ id: TagFileFragment.id })
+      ).reduce((_acc, x) => x.id, -1);
     });
 
     this.liveFeed.FragmentFileTag.boradcastUpdate(collectionId, filename, {
       type: 'add',
+      id: tagId,
       name: tag,
       begin,
       end,
       style: tagDesc.style
     });
+
+    return tagId;
   }
 
   async update(
     collectionId: number,
     filename: string,
-    { tag, ...update }: TagUpdate
+    { id, ...update }: TagUpdate
   ): Promise<void> {
-    const tagId = await this.tag.find(tag);
+    const tagPath = (
+      await this.db
+        .select({ name: Tag.name })
+        .from(TagFileFragment)
+        .leftJoin(Tag, eq(TagFileFragment.tagId, Tag.id))
+        .where(eq(TagFileFragment.id, id))
+    ).reduce((_acc, x) => x.name, null);
 
-    if (tagId === -1) {
+    if (tagPath === null) {
       throw new TagNotFoundException();
     }
 
@@ -138,12 +144,13 @@ export class FragmentTagFileService {
     }
 
     const updated = await Transaction(this.db, async () => {
-      const depth = TagParser.depth(tag);
-      const subcategoryFilter = `${TagParser.subcategory(tag)}.%`;
+      const depth = TagParser.depth(tagPath);
+      const subcategoryFilter = `${TagParser.subcategory(tagPath)}.%`;
 
       const sameSubcategoryRanges = (
         await this.db
           .select({
+            id: TagFileFragment.id,
             name: Tag.name,
             begin: TagFileFragment.begin,
             end: TagFileFragment.end
@@ -158,9 +165,7 @@ export class FragmentTagFileService {
           )
       ).filter((x) => TagParser.depth(x.name!) === depth) as Tag[];
 
-      const updatedTagIdx = sameSubcategoryRanges.findIndex(
-        (x) => x.name === tag
-      );
+      const updatedTagIdx = sameSubcategoryRanges.findIndex((x) => x.id === id);
 
       const updatedTag: Tag = {
         ...sameSubcategoryRanges[updatedTagIdx],
@@ -173,6 +178,14 @@ export class FragmentTagFileService {
       ].some((x) => FragmentTagFileService.intersection(x, updatedTag));
 
       if (intersectsWithSubcategory) {
+        console.log(
+          updatedTagIdx,
+          [
+            ...sameSubcategoryRanges.slice(0, updatedTagIdx),
+            ...sameSubcategoryRanges.slice(updatedTagIdx + 1)
+          ],
+          updatedTag
+        );
         throw new FragmentTagCollisionException();
       }
 
@@ -181,12 +194,7 @@ export class FragmentTagFileService {
           await this.db
             .update(TagFileFragment)
             .set(update)
-            .where(
-              and(
-                eq(TagFileFragment.fileId, targetFile.id),
-                eq(TagFileFragment.tagId, tagId)
-              )
-            )
+            .where(eq(TagFileFragment.id, id))
         ).changes > 0
       );
     });
@@ -194,7 +202,7 @@ export class FragmentTagFileService {
     if (updated) {
       this.liveFeed.FragmentFileTag.boradcastUpdate(collectionId, filename, {
         type: 'update',
-        tag,
+        id,
         ...update
       });
     }
@@ -210,6 +218,7 @@ export class FragmentTagFileService {
     return (
       await this.db
         .select({
+          id: TagFileFragment.id,
           name: Tag.name,
           begin: TagFileFragment.begin,
           end: TagFileFragment.end,
@@ -222,16 +231,10 @@ export class FragmentTagFileService {
   }
 
   async detach(
-    tag: string,
+    tagId: number,
     collectionId: number,
     filename: string
   ): Promise<void> {
-    const tagId = await this.tag.find(tag);
-
-    if (tagId === -1) {
-      throw new TagNotFoundException();
-    }
-
     const file = await this.file.find(collectionId, filename);
 
     if (file === null) {
@@ -245,7 +248,7 @@ export class FragmentTagFileService {
           .where(
             and(
               eq(TagFileFragment.fileId, file.id),
-              eq(TagFileFragment.tagId, tagId)
+              eq(TagFileFragment.id, tagId)
             )
           )
       ).changes > 0;
@@ -253,7 +256,7 @@ export class FragmentTagFileService {
     if (detached) {
       this.liveFeed.FragmentFileTag.boradcastUpdate(collectionId, filename, {
         type: 'remove',
-        name: tag
+        id: tagId
       });
     }
   }

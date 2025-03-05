@@ -66,7 +66,8 @@ function findFreeSpaceForTag(
       sameSubcategory[n + 1].begin - sameSubcategory[n].end >=
         minFragmentLength &&
       insertionPoint >= sameSubcategory[n].end &&
-      insertionPoint <= sameSubcategory[n + 1].begin
+      insertionPoint <= sameSubcategory[n + 1].begin &&
+      sameSubcategory[n + 1].begin - insertionPoint >= minFragmentLength
     ) {
       return {
         begin: insertionPoint,
@@ -142,7 +143,7 @@ export function FragmentTagEditor({
   const [isPlaying, setIsPlaying] = useState(false);
   const [playTime, setPlayTime] = useState(0);
   const [duration, setDuration] = useState(playerRef.duration);
-  const [selectedTag, setSelectedTag] = useState('');
+  const [selectedTag, setSelectedTag] = useState<FragmentTag | null>(null);
   const onTagUpdateRef = useRef<OnTagUpdate>(() => 0);
   const onFragmentTagUpdateRef = useRef<OnFragmentTagUpdate>(() => 0);
   const onSetBeginRef = useRef<OnSetFn>(() => 0);
@@ -167,12 +168,12 @@ export function FragmentTagEditor({
       return;
     }
 
-    if (
-      await metaInfo.attachFileFragmentTag(collectionId, filename, {
-        tag,
-        ...tagBoundary
-      })
-    ) {
+    const tagId = await metaInfo.attachFileFragmentTag(collectionId, filename, {
+      tag,
+      ...tagBoundary
+    });
+
+    if (tagId !== -1) {
       const tagDesc = tags.find((x) => x.tag === tag);
 
       if (tagDesc === undefined) return;
@@ -180,6 +181,7 @@ export function FragmentTagEditor({
       setAttachedTags([
         ...attachedTags,
         {
+          id: tagId,
           name: tag,
           ...tagBoundary,
           style: {
@@ -221,8 +223,8 @@ export function FragmentTagEditor({
         setTagTree(unmergeWithTagTree(e.name, { ...tagTree }));
         setTags(ArrayHelper.discardFirst(tags, (x) => x.tag === e.name));
 
-        if (selectedTag === e.name) {
-          setSelectedTag('');
+        if (selectedTag?.name === e.name) {
+          setSelectedTag(null);
         }
         break;
     }
@@ -255,7 +257,7 @@ export function FragmentTagEditor({
         break;
       case 'update':
         {
-          const updatedIdx = attachedTags.findIndex((x) => x.name === e.tag);
+          const updatedIdx = attachedTags.findIndex((x) => x.id === e.id);
 
           setAttachedTags([
             ...attachedTags.slice(0, updatedIdx),
@@ -270,7 +272,7 @@ export function FragmentTagEditor({
         break;
       case 'remove':
         setAttachedTags(
-          ArrayHelper.discardFirst(attachedTags, (x) => x.name === e.name)
+          ArrayHelper.discardFirst(attachedTags, (x) => x.id === e.id)
         );
         break;
     }
@@ -295,19 +297,10 @@ export function FragmentTagEditor({
       );
   }, []);
 
-  const detachedTagTree = useMemo(
-    () =>
-      attachedTags.reduce(
-        (tree, tag) => unmergeWithTagTree(tag.name, tree),
-        tagTree
-      ),
-    [attachedTags, tagTree]
-  );
-
-  const hasSelectedTag = useMemo(() => selectedTag.length > 0, [selectedTag]);
+  const hasSelectedTag = useMemo(() => selectedTag !== null, [selectedTag]);
 
   const canSetBegin = useMemo(() => {
-    const selectedIdx = attachedTags.findIndex((x) => x.name === selectedTag);
+    const selectedIdx = attachedTags.findIndex((x) => x.id === selectedTag?.id);
 
     if (selectedIdx === -1) return false;
 
@@ -324,7 +317,7 @@ export function FragmentTagEditor({
   }, [hasSelectedTag, attachedTags, selectedTag, playTime]);
 
   const canSetEnd = useMemo(() => {
-    const selectedIdx = attachedTags.findIndex((x) => x.name === selectedTag);
+    const selectedIdx = attachedTags.findIndex((x) => x.id === selectedTag?.id);
 
     if (selectedIdx === -1) return false;
 
@@ -341,7 +334,7 @@ export function FragmentTagEditor({
   }, [hasSelectedTag, attachedTags, selectedTag, playTime]);
 
   onSetBeginRef.current = async () => {
-    const selectedIdx = attachedTags.findIndex((x) => x.name === selectedTag);
+    const selectedIdx = attachedTags.findIndex((x) => x.id === selectedTag?.id);
     const selected = attachedTags[selectedIdx];
 
     const editedTag = updateTagBegin(selected, playTime);
@@ -353,14 +346,14 @@ export function FragmentTagEditor({
     ]);
 
     await metaInfo.updateAttachedFileFragmentTag(collectionId, filename, {
-      tag: editedTag.name,
+      id: editedTag.id,
       begin: editedTag.begin,
       end: editedTag.end
     });
   };
 
   onSetEndRef.current = async () => {
-    const selectedIdx = attachedTags.findIndex((x) => x.name === selectedTag);
+    const selectedIdx = attachedTags.findIndex((x) => x.id === selectedTag?.id);
     const selected = attachedTags[selectedIdx];
 
     const editedTag = updateTagEnd(selected, playTime);
@@ -372,7 +365,7 @@ export function FragmentTagEditor({
     ]);
 
     await metaInfo.updateAttachedFileFragmentTag(collectionId, filename, {
-      tag: editedTag.name,
+      id: editedTag.id,
       begin: editedTag.begin,
       end: editedTag.end
     });
@@ -380,13 +373,18 @@ export function FragmentTagEditor({
 
   const onDelete = async () => {
     if (
-      await metaInfo.detachFileFragmentTag(selectedTag, collectionId, filename)
+      selectedTag !== null &&
+      (await metaInfo.detachFileFragmentTag(
+        selectedTag.id,
+        collectionId,
+        filename
+      ))
     ) {
       setAttachedTags(
-        ArrayHelper.discardFirst(attachedTags, (x) => x.name === selectedTag)
+        ArrayHelper.discardFirst(attachedTags, (x) => x.id === selectedTag?.id)
       );
 
-      setSelectedTag('');
+      setSelectedTag(null);
     }
   };
 
@@ -457,7 +455,7 @@ export function FragmentTagEditor({
         <AddTagDialog
           open={addTagDialogOpen}
           setOpen={setAddTagDialogOpen}
-          tagTree={detachedTagTree}
+          tagTree={tagTree}
           tags={tags}
           onApply={onAddTag}
         />

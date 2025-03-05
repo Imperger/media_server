@@ -23,12 +23,13 @@ export interface FragmentTagAttachment {
 }
 
 export interface FragmentTagUpdate {
-  tag: string;
+  id: number;
   begin?: number;
   end?: number;
 }
 
 export interface FragmentTag {
+  id: number;
   name: string;
   begin: number;
   end: number;
@@ -143,29 +144,30 @@ export class MetaInfoService {
     collectionId: number,
     filename: string,
     { tag, begin, end }: FragmentTagAttachment
-  ): Promise<boolean> {
+  ): Promise<number> {
     try {
-      await this.http.post<void>('meta-info/tag-file-fragment', {
-        tag,
-        begin,
-        end,
-        collectionId,
-        filename
-      });
-      return true;
+      return (
+        await this.http.post<number>('meta-info/tag-file-fragment', {
+          tag,
+          begin,
+          end,
+          collectionId,
+          filename
+        })
+      ).data;
     } catch (e) {
-      return false;
+      return -1;
     }
   }
 
   async updateAttachedFileFragmentTag(
     collectionId: number,
     filename: string,
-    { tag, begin, end }: FragmentTagUpdate
+    { id, begin, end }: FragmentTagUpdate
   ): Promise<boolean> {
     try {
       await this.http.patch<void>(
-        `meta-info/tag-file-fragment/${tag}/${collectionId}/${filename}`,
+        `meta-info/tag-file-fragment/${id}/${collectionId}/${filename}`,
         {
           ...(begin !== undefined && { begin }),
           ...(end !== undefined && { end })
@@ -199,13 +201,13 @@ export class MetaInfoService {
   }
 
   async detachFileFragmentTag(
-    tag: string,
+    tagId: number,
     collectionId: number,
     filename: string
   ): Promise<boolean> {
     try {
       await this.http.delete(
-        `meta-info/tag-file-fragment/${tag}/${collectionId}/${filename}`
+        `meta-info/tag-file-fragment/${tagId}/${collectionId}/${filename}`
       );
       return true;
     } catch (e) {

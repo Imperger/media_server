@@ -12,14 +12,15 @@ import { TagStyle } from '@/api-service/meta-info';
 import { TagParser } from '@/lib/tag-parser';
 
 export interface FragmentTag {
+  id: number;
   name: string;
   begin: number;
   end: number;
   style: TagStyle;
 }
 
-function trackKey(track: TagStripe): string {
-  return track.reduce((acc, x) => `${acc};${x.path},${x.begin},${x.end}`, '');
+function trackKey(track: TagStripe<FragmentTag>): string {
+  return track.reduce((acc, x) => `${acc};${x.id}`, '');
 }
 
 type Condition = () => boolean;
@@ -34,7 +35,7 @@ export interface FragmentTagTracksProps {
   playTimeNormal: number;
   isPlaying: boolean;
   duration: number;
-  onSelected: (tag: string) => void;
+  onSelected: (tag: FragmentTag) => void;
 }
 
 export function FragmentTagTracks({
@@ -45,26 +46,15 @@ export function FragmentTagTracks({
   onSelected
 }: FragmentTagTracksProps) {
   const stripRef = useRef<HTMLElement>(null);
-  const [selected, setSelected] = useState('');
-  const tracks = useMemo(
-    () =>
-      FragmentTagTracksBuilder.build(
-        tags.map((x) => ({
-          path: x.name,
-          begin: x.begin,
-          end: x.end,
-          style: x.style
-        }))
-      ),
-    [tags]
-  );
+  const [selected, setSelected] = useState<FragmentTag | null>(null);
+  const tracks = useMemo(() => FragmentTagTracksBuilder.build(tags), [tags]);
 
-  const onTagClick = (tag: string) => {
+  const onTagClick = (tag: FragmentTag) => {
     setSelected(tag);
     onSelected(tag);
   };
 
-  const tagStyle = (tag: string) =>
+  const tagStyle = (tag: FragmentTag) =>
     `${styles.tag} ${tag === selected && styles.tagSelected}`;
 
   const pixelsPerSecond = 10;
@@ -150,9 +140,9 @@ export function FragmentTagTracks({
           >
             {track.map((fragment) => (
               <Box
-                key={fragment.path}
-                onClick={() => onTagClick(fragment.path)}
-                className={tagStyle(fragment.path)}
+                key={fragment.id}
+                onClick={() => onTagClick(fragment)}
+                className={tagStyle(fragment)}
                 style={{
                   left: tagX(fragment.begin),
                   width: tagWidth(fragment),
@@ -160,7 +150,7 @@ export function FragmentTagTracks({
                   backgroundColor: fragment.style.backgroundColor
                 }}
               >
-                {TagParser.label(fragment.path)}
+                {TagParser.label(fragment.name)}
               </Box>
             ))}
           </Stack>

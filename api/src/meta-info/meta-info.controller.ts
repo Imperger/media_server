@@ -93,23 +93,23 @@ export class MetaInfoController {
   async attachFileFragmentTag(
     @Body()
     { tag, collectionId, filename, begin, end }: FragmentTagFileAttachmentDto
-  ): Promise<void> {
-    await this.fragmentTagFile.attach(collectionId, filename, {
+  ): Promise<number> {
+    return this.fragmentTagFile.attach(collectionId, filename, {
       tag,
       begin,
       end
     });
   }
 
-  @Patch('tag-file-fragment/:tag/:collectionId/*')
+  @Patch('tag-file-fragment/:tagId/:collectionId/*')
   async updateAttachedFileFragmentTag(
-    @Param('tag') tag: string,
+    @Param('tagId', ParseIntPipe) tagId: number,
     @Param('collectionId', ParseIntPipe) collectionId: number,
     @Param('*') filename: string,
     @Body() update: FragmentTagUpdateDto
   ): Promise<void> {
     await this.fragmentTagFile.update(collectionId, filename, {
-      tag,
+      id: tagId,
       ...update
     });
   }
@@ -123,13 +123,13 @@ export class MetaInfoController {
   }
 
   @HttpCode(204)
-  @Delete('tag-file-fragment/:tag/:collectionId/*')
+  @Delete('tag-file-fragment/:tagId/:collectionId/*')
   async detachFileFragmentTag(
-    @Param('tag') tag: string,
+    @Param('tagId', ParseIntPipe) tagId: number,
     @Param('collectionId', ParseIntPipe) collectionId: number,
     @Param('*') filename: string
   ): Promise<void> {
-    await this.fragmentTagFile.detach(tag, collectionId, filename);
+    await this.fragmentTagFile.detach(tagId, collectionId, filename);
   }
 
   @Post('tag-folder-global')
