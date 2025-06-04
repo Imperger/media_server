@@ -52,7 +52,12 @@ function findFreeSpaceForTag(
     .sort((a, b) => a.begin - b.begin);
 
   if (sameSubcategory.length === 0) {
-    return { begin: 0, end: minFragmentLength };
+    return insertionPoint + minFragmentLength <= duration
+      ? {
+          begin: insertionPoint,
+          end: insertionPoint + minFragmentLength
+        }
+      : null;
   }
 
   sameSubcategory.unshift({ begin: 0, end: 0, name: 'before_first' });
