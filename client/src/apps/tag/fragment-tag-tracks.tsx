@@ -142,6 +142,7 @@ export function FragmentTagTracks({
               <Box
                 key={fragment.id}
                 onClick={() => onTagClick(fragment)}
+                title={TagParser.label(fragment.name)}
                 className={tagStyle(fragment)}
                 style={{
                   left: tagX(fragment.begin),
