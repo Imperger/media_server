@@ -16,6 +16,31 @@ interface ScrubbingOverlayProps
   currentTimeNormal: number;
 }
 
+function scrubbingFrameWidth(
+  stripeDimension: ImageInfo,
+  originAspectRatio: number
+): number {
+  const maxDeviation = 50;
+
+  const potentialWidth = Math.round(stripeDimension.height * originAspectRatio);
+
+  if (stripeDimension.width % potentialWidth === 0) {
+    return potentialWidth;
+  }
+
+  for (let deviation = 1; deviation <= maxDeviation; ++deviation) {
+    if (stripeDimension.width % (potentialWidth + deviation) === 0) {
+      return potentialWidth + deviation;
+    }
+
+    if (stripeDimension.width % (potentialWidth - deviation) === 0) {
+      return potentialWidth - deviation;
+    }
+  }
+
+  return potentialWidth;
+}
+
 function ScrubbingOverlay({
   show,
   scrubbingStripeUrl,
@@ -45,7 +70,7 @@ function ScrubbingOverlay({
 
   useEffect(() => {
     const setup = async () => {
-      const frameWidth = Math.round(stripeDimension.height * videoAspectRatio);
+      const frameWidth = scrubbingFrameWidth(stripeDimension, videoAspectRatio);
       const framesOnStrip = Math.floor(stripeDimension.width / frameWidth);
 
       setStripeDimension(stripeDimension);
