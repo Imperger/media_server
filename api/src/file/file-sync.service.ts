@@ -47,6 +47,11 @@ export class FileSyncService {
 
     let syncedNow = 0;
     const presyncState = await this.folderPresyncState(absolutePath);
+
+    if (presyncState.files === 0) {
+      return 0;
+    }
+
     let totalSize = 0;
     const currentFolder = {
       path: path.parse(presyncState.path).dir,
@@ -121,6 +126,11 @@ export class FileSyncService {
     absolutePath: string
   ): Promise<FolderInitState> {
     const enumerator = FSHelper.EnumerateFiles(absolutePath);
+
+    if ((await enumerator.next()).done) {
+      return { path: '', files: 0 };
+    }
+
     const path = PathHelper.relativeToMedia((await enumerator.next()).value);
 
     let files = +this.isSupportedFileType(path);
