@@ -127,11 +127,13 @@ export class FileSyncService {
   ): Promise<FolderInitState> {
     const enumerator = FSHelper.EnumerateFiles(absolutePath);
 
-    if ((await enumerator.next()).done) {
+    const firstFileIterator = await enumerator.next();
+
+    if (firstFileIterator.done) {
       return { path: '', files: 0 };
     }
 
-    const path = PathHelper.relativeToMedia((await enumerator.next()).value);
+    const path = PathHelper.relativeToMedia(firstFileIterator.value);
 
     let files = +this.isSupportedFileType(path);
     for await (const filename of enumerator) {
