@@ -164,7 +164,7 @@ export class FileAccessService {
     );
 
     const relativeToMediaNewFilename = Path.join(
-      Path.dirname(relativeToCollectionPath),
+      Path.dirname(relativeToMediaFilename),
       newFilename
     );
 
