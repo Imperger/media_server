@@ -52,6 +52,7 @@ export interface FileCardProps {
   duration: number;
   width: number;
   height: number;
+  bitrate: number;
   assetPrefix: string;
   createdAt: number;
   isAvailable: boolean;
@@ -426,6 +427,7 @@ function FileCard(props: FileCardProps) {
         createdAt={props.createdAt}
         width={props.width}
         height={props.height}
+        bitrate={props.bitrate}
         size={props.size}
         duration={props.duration}
       />

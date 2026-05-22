@@ -6,7 +6,7 @@ import {
 } from '@reduxjs/toolkit';
 
 export interface SortRule {
-  property: 'title' | 'duration' | 'size';
+  property: 'title' | 'duration' | 'size' | 'bitrate';
   order: 'asc' | 'desc' | 'none';
 }
 

@@ -649,6 +649,7 @@ export default function Search() {
                 duration={x.duration}
                 width={x.width}
                 height={x.height}
+                bitrate={x.bitrate}
                 assetPrefix={x.assetPrefix}
                 createdAt={x.createdAt}
                 onDelete={() => 0}

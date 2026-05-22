@@ -10,6 +10,7 @@ import { PathHelper } from '@/lib/path-helper';
 export interface VideoMetainfo {
   width: number;
   height: number;
+  bitrate: number;
   duration: number;
 }
 
@@ -33,6 +34,7 @@ export class MediaToolService {
     return {
       width: stream.width,
       height: stream.height,
+      bitrate: Number.parseInt(stream.bit_rate),
       duration: Number.parseFloat(stream.duration)
     };
   }

@@ -102,6 +102,7 @@ export class SearchService {
         size: File.size,
         width: File.width,
         height: File.height,
+        bitrate: File.bitrate,
         duration: File.duration,
         createdAt: File.createdAt
       })

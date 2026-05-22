@@ -20,6 +20,7 @@ export interface FileInfoDialogProps extends RWState<'open', boolean> {
   createdAt: number;
   width: number;
   height: number;
+  bitrate: number;
 }
 
 function FileInfoDialog({
@@ -30,7 +31,8 @@ function FileInfoDialog({
   size,
   duration,
   width,
-  height
+  height,
+  bitrate
 }: FileInfoDialogProps) {
   const onClose = () => setOpen(false);
 
@@ -43,6 +45,9 @@ function FileInfoDialog({
             Created at: {dateFormat(createdAt, 'yyyy-mm-dd HH:MM:ss')}
           </Typography>
           <Typography>Resolution: {`${width}x${height}`}</Typography>
+          <Typography>
+            Bitrate: {prettyBytes(bitrate, { bits: true })}
+          </Typography>
           <Typography>Duration: {formatDuration(duration)}</Typography>
           <Typography>Size: {prettyBytes(size)}</Typography>
         </Stack>

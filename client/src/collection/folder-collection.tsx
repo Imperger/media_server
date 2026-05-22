@@ -39,6 +39,7 @@ import styles from './folder-collection.module.css';
 import { SortRule, updateSortRule } from './store/sort-rule';
 
 import { Inversify } from '@/inversify';
+import BitrateIcon from '@/lib/components/icons/bitrate-icon';
 import { Path } from '@/lib/path';
 
 interface BreadcrumbItem {
@@ -142,6 +143,18 @@ function SortMenu({ sortRule, setSortRule }: SortMenuProps) {
           <ListItemText className={styles.sortMenuItemTitle}>Size</ListItemText>
           <SortOrderIcon order={sortIconOrder('size')} />
         </MenuItem>
+        <MenuItem
+          sx={{ paddingRight: '5px' }}
+          onClick={(e) => onSortingChange(e, 'bitrate')}
+        >
+          <ListItemIcon>
+            <BitrateIcon />
+          </ListItemIcon>
+          <ListItemText className={styles.sortMenuItemTitle}>
+            Bitrate
+          </ListItemText>
+          <SortOrderIcon order={sortIconOrder('bitrate')} />
+        </MenuItem>
       </Menu>
     </>
   );
@@ -159,6 +172,12 @@ function extractKey(obj: FolderContentRecord, rule: SortRule) {
           : 0;
     case 'size':
       return obj.size;
+    case 'bitrate':
+      return obj.type === 'file'
+        ? obj.bitrate
+        : rule.order === 'asc'
+          ? Number.POSITIVE_INFINITY
+          : 0;
   }
 }
 
@@ -392,6 +411,7 @@ function FolderCollection() {
                   duration={x.duration}
                   width={x.width}
                   height={x.height}
+                  bitrate={x.bitrate}
                   assetPrefix={x.assetPrefix}
                   createdAt={x.createdAt}
                   onRename={onRenameFile}

@@ -48,6 +48,7 @@ export interface FileRecord {
   duration: number;
   width: number;
   height: number;
+  bitrate: number;
   assetPrefix: string;
   createdAt: number;
 }

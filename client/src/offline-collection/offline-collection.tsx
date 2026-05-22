@@ -72,6 +72,7 @@ function OfflineCollection() {
                   duration: 0,
                   width: 0,
                   height: 0,
+                  bitrate: 0,
                   size: 0
                 };
           })
@@ -108,6 +109,7 @@ function OfflineCollection() {
             duration={x.duration}
             width={x.width}
             height={x.height}
+            bitrate={x.bitrate}
             assetPrefix={x.assetPrefix}
             createdAt={x.createdAt}
             onDelete={() => 0}

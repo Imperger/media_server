@@ -12,6 +12,7 @@ export const File = sqliteTable(
       enum: ['landscape', 'portrait']
     }).notNull(),
     height: integer('height').notNull(),
+    bitrate: integer('bitrate').notNull(),
     duration: integer('duration').notNull(),
     createdAt: integer('createdAt').notNull(), // file creation date
     syncedAt: integer('syncedAt').notNull()
