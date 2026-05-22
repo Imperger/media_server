@@ -5,6 +5,7 @@ import { Injectable } from '@nestjs/common';
 import { MissingVideoStreamException } from './exceptions';
 
 import { ClipBoundary, Ffmpeg } from '@/lib/ffmpeg/ffmpeg';
+import { FSHelper } from '@/lib/fs-helper';
 import { PathHelper } from '@/lib/path-helper';
 
 export interface VideoMetainfo {
@@ -17,6 +18,7 @@ export interface VideoMetainfo {
 export interface GenerateAssetsProps {
   previewTimepoint: number;
   assetPrefix: string;
+  overwrite: boolean;
 }
 
 @Injectable()
@@ -59,10 +61,16 @@ export class MediaToolService {
     source: string,
     props: GenerateAssetsProps
   ): Promise<boolean> {
+    const dest = path.join(PathHelper.previewEntry, `${props.assetPrefix}.jpg`);
+
+    if (!props.overwrite && (await FSHelper.exists(dest))) {
+      return true;
+    }
+
     return Ffmpeg.generatePreview(
       path.join(PathHelper.mediaEntry, source),
       props.previewTimepoint,
-      path.join(PathHelper.previewEntry, `${props.assetPrefix}.jpg`),
+      dest,
       { overwrite: true }
     );
   }
@@ -75,10 +83,19 @@ export class MediaToolService {
     source: string,
     props: GenerateAssetsProps
   ): Promise<boolean> {
+    const dest = path.join(
+      PathHelper.scrubbingEntry,
+      `${props.assetPrefix}.jpg`
+    );
+
+    if (!props.overwrite && (await FSHelper.exists(dest))) {
+      return true;
+    }
+
     return Ffmpeg.generateScrubbingStrip(
       path.join(PathHelper.mediaEntry, source),
       { stripWidth: 32768, tiles: 128 },
-      path.join(PathHelper.scrubbingEntry, `${props.assetPrefix}.jpg`),
+      dest,
       { overwrite: true }
     );
   }

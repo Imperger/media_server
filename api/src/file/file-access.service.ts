@@ -38,6 +38,7 @@ export interface RangeOptions {
 export interface GenerateAssetsOptions {
   filename: string;
   duration: number;
+  overwrite: boolean;
 }
 
 @Injectable()
@@ -374,7 +375,8 @@ export class FileAccessService {
   async generateAssets(file: GenerateAssetsOptions): Promise<boolean> {
     return this.mediaTool.generateAssets(file.filename, {
       previewTimepoint: Math.round(file.duration / 10),
-      assetPrefix: assetHash(file.filename)
+      assetPrefix: assetHash(file.filename),
+      overwrite: file.overwrite
     });
   }
 

@@ -27,13 +27,13 @@ async function setupConfigFolder() {
     await fs.mkdir(PathHelper.previewEntry);
     await fs.mkdir(PathHelper.trailerEntry);
     await fs.mkdir(PathHelper.scrubbingEntry);
-
-    await fs.copyFile(
-      'shema.db',
-      path.join(PathHelper.configEntry, 'data.db'),
-      fs.constants.COPYFILE_EXCL
-    );
   }
+
+  await fs.copyFile(
+    'shema.db',
+    path.join(PathHelper.configEntry, 'data.db'),
+    fs.constants.COPYFILE_EXCL
+  );
 }
 
 async function FastifyFactory(): Promise<FastifyAdapter> {

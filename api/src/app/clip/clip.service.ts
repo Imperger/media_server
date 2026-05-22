@@ -103,7 +103,8 @@ export class ClipService {
 
         await this.fileAccess.generateAssets({
           filename: relativeToMediaOutput,
-          duration: boundary.end - boundary.begin
+          duration: boundary.end - boundary.begin,
+          overwrite: true
         });
 
         const file = await this.fileAccess.create(relativeToMediaOutput);

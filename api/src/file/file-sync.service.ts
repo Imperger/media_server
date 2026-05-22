@@ -91,7 +91,10 @@ export class FileSyncService {
       }
 
       if (sizeBeforeSync !== file.size) {
-        await this.fileAccess.generateAssets(file);
+        await this.fileAccess.generateAssets({
+          ...file,
+          overwrite: sizeBeforeSync !== -1
+        });
       }
 
       totalSize += file.size;
