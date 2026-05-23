@@ -29,11 +29,10 @@ async function setupConfigFolder() {
     await fs.mkdir(PathHelper.scrubbingEntry);
   }
 
-  await fs.copyFile(
-    'shema.db',
-    path.join(PathHelper.configEntry, 'data.db'),
-    fs.constants.COPYFILE_EXCL
-  );
+  const dbFilename = path.join(PathHelper.configEntry, 'data.db');
+  if (!(await FSHelper.exists(dbFilename))) {
+    await fs.copyFile('shema.db', dbFilename);
+  }
 }
 
 async function FastifyFactory(): Promise<FastifyAdapter> {
